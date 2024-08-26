@@ -33,7 +33,12 @@ namespace ProyectoTron6
                     Node node = linkedList.GetNode(i, j);
                     Rectangle rect = new Rectangle(j * cellWidth, i * cellHeight, cellWidth, cellHeight);
 
-                    if (node == bike.GetCurrentPosition())
+                    // Dibuja la estela en amarillo
+                    if (bike.GetTrail().Contains(node))
+                    {
+                        g.FillRectangle(Brushes.Yellow, rect); // Dibuja la estela en amarillo
+                    }
+                    else if (node == bike.GetCurrentPosition())
                     {
                         g.FillRectangle(Brushes.Red, rect); // Dibuja la moto como un cuadro rojo
                     }

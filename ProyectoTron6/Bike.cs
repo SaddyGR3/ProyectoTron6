@@ -8,65 +8,77 @@ namespace ProyectoTron6
 {
     internal class Bike
     {
-        private Node currentPosition;
+        private Node currentPosition; //Nodo que representa la posición actual de la moto.
+        public int velocidad;
+        public int combustible;
+        public LinkedList<Node> estela; //Lista enlazada que representa la estela dejada por la moto.que deja la moto.
+        public int tamañoestela;
 
         public Bike(Node initialPosition)
         {
-            currentPosition = initialPosition;
-            currentPosition.Data = "Bike";
+            currentPosition = initialPosition; //Inicializa la posición actual de la moto segun la pos dada como entrada al crear una instancia moto
+            currentPosition.Data = "Bike";//El nodo actual ahora "almacena" la moto. Data es un str definido en la clase nodo.
+            estela = new LinkedList<Node>(); //Inicializa la lista enlazada para la estela.
+            tamañoestela = 3; 
+            velocidad = new Random().Next(1,11); //La velocidad de las motos al crearse,es un random,falta ajustar esta parte.
+            combustible = 100;
         }
 
-        public Node GetCurrentPosition()
+        public Node GetCurrentPosition() //Metodo que devuelve la posicion actual de la moto.
         {
             return currentPosition;
         }
 
-        public void MoveUp()
+        public LinkedList<Node> GetTrail()
         {
-            if (currentPosition.Up != null)
-            {
-                System.Diagnostics.Debug.WriteLine($"Current Position: [{currentPosition.Data}]");
-                currentPosition.Data = ""; //Nodo actual a vacio
-                currentPosition = currentPosition.Up;
-                currentPosition.Data = "Bike"; //Los datos del nuevo nodo pasan a ser la moto
-                System.Diagnostics.Debug.WriteLine($"New Position: [{currentPosition.Data}]");
-            }
+            return estela; //Metodo para acceder a la estela
+        }
+
+        public void MoveUp() //Metodos de movimiento de la moto. 
+        {
+            Move(currentPosition.Up);
         }
 
         public void MoveDown()
         {
-            if (currentPosition.Down != null)
-            {
-                System.Diagnostics.Debug.WriteLine($"Current Position: [{currentPosition.Data}]");
-                currentPosition.Data = ""; //Nodo actual a vacio
-                currentPosition = currentPosition.Down;
-                currentPosition.Data = "Bike"; //Los datos del nuevo nodo pasan a ser la moto
-                System.Diagnostics.Debug.WriteLine($"New Position: [{currentPosition.Data}]");
-            }
+            Move(currentPosition.Down);
         }
 
         public void MoveLeft()
         {
-            if (currentPosition.Left != null)
-            {
-                System.Diagnostics.Debug.WriteLine($"Current Position: [{currentPosition.Data}]");
-                currentPosition.Data = "";
-                currentPosition = currentPosition.Left;
-                currentPosition.Data = "Bike";
-                System.Diagnostics.Debug.WriteLine($"New Position: [{currentPosition.Data}]");
-            }
+            Move(currentPosition.Left);
         }
 
         public void MoveRight()
         {
-            if (currentPosition.Right != null)
+            Move(currentPosition.Right);
+        }
+
+        private void Move(Node newPosition)
+        {
+            if (newPosition != null)//Verifica si la nueva posición es valida.
             {
-                System.Diagnostics.Debug.WriteLine($"Current Position: [{currentPosition.Data}]");
-                currentPosition.Data = "";
-                currentPosition = currentPosition.Right;
-                currentPosition.Data = "Bike";
-                System.Diagnostics.Debug.WriteLine($"New Position: [{currentPosition.Data}]");
+                
+                estela.AddFirst(currentPosition);//Agrega la posición actual al inicio de la estela.
+                if (estela.Count > tamañoestela) // Verifica si la estela excede el tamaño permitido.
+                {
+                    Node lastNode = estela.Last.Value; //Obtiene el último nodo de la estela.
+                    lastNode.Data = ""; //Vacia el dato del ultimo nodo de la estela,este paso es necesario para asegurarse que el nodo ya no este ocupado por la moto
+                    estela.RemoveLast(); //Elimina el ultimo nodo de la estela.
+                }
+
+                //Actualiza la posicion de la moto
+                currentPosition.Data = ""; //Vaciar el nodo actual de la moto
+                currentPosition = newPosition; //La mueve a la nueva posicion.
+                currentPosition.Data = "Bike"; //Marca la nueva posicion como ocupada por la moto.
+
+                //Consumir combustible
+               combustible -= velocidad / 5; //Consume 1 celda de combustible por cada 5 elementos recorridos HAY QUE ARREGLAR
+
+                Console.WriteLine($"Current Position: [{currentPosition.Data}], Fuel: {combustible}"); //PASARLO A DEBUG.
             }
         }
+
+        //Aqui podrian ir los metodos de poderes y items. Incorporado probablemente con pila.
     }
 }
