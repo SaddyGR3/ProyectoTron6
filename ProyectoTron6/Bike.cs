@@ -25,9 +25,11 @@ namespace ProyectoTron6
         {
             if (currentPosition.Up != null)
             {
+                System.Diagnostics.Debug.WriteLine($"Current Position: [{currentPosition.Data}]");
                 currentPosition.Data = ""; //Nodo actual a vacio
                 currentPosition = currentPosition.Up;
                 currentPosition.Data = "Bike"; //Los datos del nuevo nodo pasan a ser la moto
+                System.Diagnostics.Debug.WriteLine($"New Position: [{currentPosition.Data}]");
             }
         }
 
@@ -35,9 +37,11 @@ namespace ProyectoTron6
         {
             if (currentPosition.Down != null)
             {
+                System.Diagnostics.Debug.WriteLine($"Current Position: [{currentPosition.Data}]");
                 currentPosition.Data = ""; //Nodo actual a vacio
                 currentPosition = currentPosition.Down;
                 currentPosition.Data = "Bike"; //Los datos del nuevo nodo pasan a ser la moto
+                System.Diagnostics.Debug.WriteLine($"New Position: [{currentPosition.Data}]");
             }
         }
 
@@ -45,9 +49,11 @@ namespace ProyectoTron6
         {
             if (currentPosition.Left != null)
             {
+                System.Diagnostics.Debug.WriteLine($"Current Position: [{currentPosition.Data}]");
                 currentPosition.Data = "";
                 currentPosition = currentPosition.Left;
                 currentPosition.Data = "Bike";
+                System.Diagnostics.Debug.WriteLine($"New Position: [{currentPosition.Data}]");
             }
         }
 
@@ -55,9 +61,11 @@ namespace ProyectoTron6
         {
             if (currentPosition.Right != null)
             {
+                System.Diagnostics.Debug.WriteLine($"Current Position: [{currentPosition.Data}]");
                 currentPosition.Data = "";
                 currentPosition = currentPosition.Right;
                 currentPosition.Data = "Bike";
+                System.Diagnostics.Debug.WriteLine($"New Position: [{currentPosition.Data}]");
             }
         }
     }
