@@ -14,9 +14,13 @@ namespace ProyectoTron6
         public LinkedList<Node> estela; //La estela dejada por la moto
         public int tamañoestela;
         public double intervalTime;
+        public ItemQueue itemQueue = new ItemQueue();
+        private bool isInvulnerable = false;
+
 
         //variable para el movimiento continuado del jugador
-        private string currentDirection;
+        protected string currentDirection;
+
 
         public Bike(Node initialPosition)
         {
@@ -94,23 +98,68 @@ namespace ProyectoTron6
         {
             if (newPosition != null)
             {
-                estela.AddFirst(currentPosition); //Agrega la posición actual al inicio de la estela.
-                if (estela.Count > tamañoestela)
+                // Verificar colisiones
+                if (newPosition.Data == "EnemyBike" || newPosition.Data == "Jugador")
                 {
-                    Node lastNode = estela.Last.Value; // Obtiene el último nodo de la estela.
-                    lastNode.Data = ""; // Vacia el dato del último nodo de la estela.
-                    estela.RemoveLast(); // Elimina el último nodo de la estela.
+                    Console.WriteLine("Colisión entre motos: ambas destruidas");
+                    //Aquí puedes agregar lógica para destruir ambas motos o finalizar el juego
+                    return;
+                }
+                else if (newPosition.Data == "Trail")
+                {
+                    Console.WriteLine("Colisión con una estela: la moto se destruye");
+                    //Aquí puedes agregar la lógica para destruir esta moto
+                    return;
                 }
 
-                currentPosition.Data = ""; // Vacía el nodo actual de la moto.
-                currentPosition = newPosition; // Mueve la moto a la nueva posición.
-                currentPosition.Data = "Bike"; // Marca la nueva posición como ocupada por la moto.
+                // Si no hay colisión, continuar moviendo la moto
+                estela.AddFirst(currentPosition); // Agrega la posición actual al inicio de la estela
+                if (estela.Count > tamañoestela)
+                {
+                    Node lastNode = estela.Last.Value; // Obtiene el último nodo de la estela
+                    lastNode.Data = ""; // Limpia el dato del último nodo de la estela
+                    estela.RemoveLast(); // Elimina el último nodo de la estela
+                }
+
+                currentPosition.Data = "Trail"; // Marcar la posición anterior como estela
+                currentPosition = newPosition; // Mover a la nueva posición
+                currentPosition.Data = GetBikeData(); // Marcar la nueva posición como la moto
 
                 // Consumir combustible
-                combustible -= velocidad / 5; // Consume combustible basado en la velocidad.
-
-                Console.WriteLine($"Current Position: [{currentPosition.Data}], Fuel: {combustible}");
+                combustible -= velocidad / 5;
             }
+        }
+
+        public async Task ApplyItems()
+        {
+            while (itemQueue.GetItems().Count > 0)
+            {
+                var item = itemQueue.Dequeue();
+                item.Apply(this);  // Aplica el ítem a la moto
+                await Task.Delay(1000); // Delay de 1 segundo entre ítems
+            }
+        }
+
+        public void SetInvulnerable(int seconds)
+        {
+            isInvulnerable = seconds > 0;
+            Console.WriteLine(isInvulnerable ? "Moto invulnerable" : "Moto vulnerable");
+        }
+
+        public void Destroy()
+        {
+            // Lógica para destruir la moto: 
+            // Por ejemplo, eliminarla del juego, vaciar su estela, etc.
+            Console.WriteLine("La moto ha sido destruida.");
+            currentPosition.Data = "";  // Liberar la posición actual
+            estela.Clear();             // Vaciar la estela
+                                        // Aquí también podrías añadir cualquier otra lógica adicional, como detener su movimiento.
+        }
+
+        // Método para verificar si la moto es invulnerable
+        public bool IsInvulnerable()
+        {
+            return isInvulnerable;
         }
 
         //Método sobrescribible para obtener los datos de la moto
@@ -118,5 +167,6 @@ namespace ProyectoTron6
         {
             return "Bike"; //Valor por defecto
         }
+
     }
 }

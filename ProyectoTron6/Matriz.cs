@@ -34,6 +34,18 @@ namespace ProyectoTron6
                 }
             }
         }
+        public Node FindFreeNode()
+        {
+            Random rand = new Random();
+            Node freeNode;
+            do
+            {
+                int row = rand.Next(0, Matrix.GetLength(0)); // Filas
+                int col = rand.Next(0, Matrix.GetLength(1)); // Columnas
+                freeNode = Matrix[row, col];
+            } while (!string.IsNullOrEmpty(freeNode.Data)); // Verifica que el nodo esté libre
+            return freeNode;
+        }
 
         //Metodo para obtener un nodo especifico de la matriz
         public Node GetNode(int row, int col)
