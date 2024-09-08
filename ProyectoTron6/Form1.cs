@@ -6,9 +6,9 @@ namespace ProyectoTron6
         private Jugador jugador;
         private List<Enemigos> enemigos;
         private const int GridSize = 30; // Tamaño de la matriz 30x30
-        private System.Windows.Forms.Timer Movimientoenemigo;
         private System.Windows.Forms.Timer MovimientoJugador;
         private Keys lastDirection;
+        private List<System.Windows.Forms.Timer> timersEnemigos;
 
         //Variables para mostrar la información del jugador y enemigos
         private Label lblVelocidadJugador;
@@ -64,25 +64,33 @@ namespace ProyectoTron6
             jugador = new Jugador(linkedList.GetNode(GridSize / 2, GridSize / 2)); // Moto inicia en el centro de la matriz
             enemigos = new List<Enemigos>();
 
+            // Inicializar lista de timers
+            timersEnemigos = new List<System.Windows.Forms.Timer>();
+
+
             // Creación de 3 motos enemigas con posiciones únicas
             for (int i = 0; i < 3; i++)
             {
                 Node enemyStartNode;
-                // Asegura que el nodo inicial del enemigo no esté ocupado por el jugador o por otro enemigo
                 do
                 {
                     enemyStartNode = linkedList.GetNode(new Random().Next(0, GridSize), new Random().Next(0, GridSize));
                 } while (enemyStartNode == jugador.GetCurrentPosition() || enemigos.Any(e => e.GetCurrentPosition() == enemyStartNode));
 
-                enemigos.Add(new Enemigos(enemyStartNode));
+                var enemigo = new Enemigos(enemyStartNode);
+                enemigos.Add(enemigo);
+
+                // Configurar temporizador para cada enemigo con su velocidad
+                var timerEnemigo = new System.Windows.Forms.Timer();
+                timerEnemigo.Interval = GetSpeedInterval(enemigo.velocidad);
+                timerEnemigo.Tick += (sender, e) => Movimientoenemigo_Tick(enemigo);
+                timerEnemigo.Start();
+
+                timersEnemigos.Add(timerEnemigo);
             }
 
-            // Configurar temporizador para movimiento de enemigos
-            Movimientoenemigo = new System.Windows.Forms.Timer();
-            Movimientoenemigo.Interval = 1000; // Intervalo de 1 segundo
-            Movimientoenemigo.Tick += Movimientoenemigo_Tick;
-            Movimientoenemigo.Start();
 
+            // Configurar temporizador para movimiento del jugador
             MovimientoJugador = new System.Windows.Forms.Timer();
             MovimientoJugador.Interval = GetSpeedInterval(jugador.velocidad); // Inicializar con la velocidad del jugador
             MovimientoJugador.Tick += MovimientoJugador_Tick;
@@ -95,16 +103,14 @@ namespace ProyectoTron6
             UpdateInfoLabels();
         }
 
-        private void Movimientoenemigo_Tick(object sender, EventArgs e)
+        private void Movimientoenemigo_Tick(Enemigos enemigo)
         {
-            foreach (var enemigo in enemigos)
-            {
-                enemigo.MoveRandom();
-            }
-
+            enemigo.MoveRandom();
             UpdateInfoLabels();
-            this.Refresh(); // Redibuja la ventana después de que las motos enemigas se mueven
+            this.Refresh();
         }
+
+
         private int GetSpeedInterval(int velocidad)
         {
             // Aquí calculas los milisegundos por nodo según la velocidad
