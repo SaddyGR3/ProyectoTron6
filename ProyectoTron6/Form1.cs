@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace ProyectoTron6
 {
     public partial class Form1 : Form
@@ -9,7 +11,6 @@ namespace ProyectoTron6
         private System.Windows.Forms.Timer MovimientoJugador;
         private Keys lastDirection;
         private List<System.Windows.Forms.Timer> timersEnemigos;
-
         //Variables para mostrar la información del jugador y enemigos
         private Label lblVelocidadJugador;
         private Label lblCombustibleJugador;
@@ -109,7 +110,16 @@ namespace ProyectoTron6
             UpdateInfoLabels();
             this.Refresh();
         }
+        private void RemoveEnemy(Enemigos enemigo)
+        {
+            // Detener el temporizador del enemigo
+            var timer = timersEnemigos[enemigos.IndexOf(enemigo)];
+            timer.Stop();
 
+            // Eliminar el enemigo de la lista de enemigos y timers
+            enemigos.Remove(enemigo);
+            timersEnemigos.Remove(timer);
+        }
 
         private int GetSpeedInterval(int velocidad)
         {
@@ -117,9 +127,49 @@ namespace ProyectoTron6
             // Velocidad 10 es 4 nodos por segundo (1000ms / 4 = 250ms por nodo)
             return (int)(1000 / (2.2 + (velocidad - 2) * 0.2));
         }
+        private void CheckCollision(Bike moto1, Bike moto2)
+        {
+            if (moto1.GetCurrentPosition() == moto2.GetCurrentPosition())
+            {
+                // Si dos motos colisionan en la misma posición
+                moto1.Destroy();
+                moto2.Destroy();
+
+                // Si uno de los participantes es un enemigo, elimínalo
+                if (moto1 is Enemigos)
+                {
+                    RemoveEnemy((Enemigos)moto1);
+                }
+
+                if (moto2 is Enemigos)
+                {
+                    RemoveEnemy((Enemigos)moto2);
+                }
+            }
+        }
         private void MovimientoJugador_Tick(object sender, EventArgs e)
         {
-            // Ejecutar el movimiento basado en la última tecla presionada
+            // Si el jugador está destruido, terminar el juego
+            if (jugador.isDestroyed)
+            {
+                ShowGameOverMessage();  //Mostrar mensaje si el jugador está destruido
+                return;
+            }
+
+            // Verificar la destrucción de enemigos y eliminarlos
+            foreach (var enemigo in enemigos.ToList()) // Usamos ToList() para evitar problemas al modificar la lista durante la iteración
+            {
+                if (enemigo.isDestroyed)
+                {
+                    RemoveEnemy(enemigo); // Elimina el enemigo si está destruido
+                    continue; // Pasar al siguiente enemigo
+                }
+
+                // Movimiento del enemigo
+                enemigo.MoveRandom();
+            }
+
+            // Movimiento del jugador basado en la última dirección
             if (lastDirection != Keys.None)
             {
                 switch (lastDirection)
@@ -138,10 +188,11 @@ namespace ProyectoTron6
                         break;
                 }
             }
+
+            // Actualizar las etiquetas de información y redibujar
             UpdateInfoLabels();
             this.Refresh();
         }
-
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
             // Guardar la última dirección de movimiento
@@ -159,6 +210,31 @@ namespace ProyectoTron6
             // Actualizar la etiqueta de velocidad de los enemigos (intervalo)
             var velocidadesEnemigos = string.Join(", ", enemigos.Select(e => e.velocidad));
             lblVelocidadEnemigos.Text = $"Velocidad Enemigos: {velocidadesEnemigos}";
+        }
+        public void ShowGameOverMessage()
+        {
+            using (Graphics g = CreateGraphics())
+            {
+                Font font = new Font("Arial", 48, FontStyle.Bold);
+                Brush brush = Brushes.Red;
+                string message = "GAME OVER";
+
+                // Obtener el tamaño del texto
+                SizeF textSize = g.MeasureString(message, font);
+
+                // Calcular la posición para centrar el texto
+                float x = (ClientSize.Width - textSize.Width) / 2;
+                float y = (ClientSize.Height - textSize.Height) / 2;
+
+                // Dibujar el mensaje en rojo
+                g.DrawString(message, font, brush, x, y);
+            }
+
+            // Pausar el hilo actual durante 2 segundos (2000 ms)
+            System.Threading.Thread.Sleep(2000);
+
+            // Cerrar la aplicación después de 2 segundos
+            Application.Exit();
         }
 
 
@@ -186,6 +262,19 @@ namespace ProyectoTron6
                     else if (node == jugador.GetCurrentPosition())
                     {
                         g.FillRectangle(Brushes.Red, rect); // Dibuja la moto del jugador como un cuadro rojo
+                    }
+                    // Dibuja los items según su tipo (en función del valor del string en Node.Data)
+                    else if (node.Data == "FuelCell")
+                    {
+                        g.FillRectangle(Brushes.Purple, rect); // Dibuja una celda de combustible en morado
+                    }
+                    else if (node.Data == "TrailGrowth")
+                    {
+                        g.FillRectangle(Brushes.Green, rect); // Dibuja el crecimiento de estela en verde
+                    }
+                    else if (node.Data == "Bomb")
+                    {
+                        g.FillRectangle(Brushes.Black, rect); // Dibuja la bomba en negro
                     }
                     else
                     {
@@ -219,6 +308,6 @@ namespace ProyectoTron6
                 }
             }
         }
- 
+
     }
 }

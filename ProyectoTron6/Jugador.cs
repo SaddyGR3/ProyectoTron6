@@ -10,11 +10,13 @@ namespace ProyectoTron6
     {
         private LinkedListNode<Item> currentItem;
         private ItemQueue itemQueue;
+        public bool isDestroyed { get; private set; }
 
         public Jugador(Node initialPosition) : base(initialPosition)
         {
             currentPosition.Data = "Jugador"; // Cambia el dato que almacena el nodo a PlayerBike
             itemQueue = new ItemQueue();
+            isDestroyed = false;
         }
         public void MoveUp()
         {
@@ -34,6 +36,12 @@ namespace ProyectoTron6
         public void MoveRight()
         {
             Move(currentPosition.Right);
+        }
+
+        public override void Destroy()
+        {
+            base.Destroy();
+            isDestroyed = true;  // Marcar como destruido
         }
         public async Task ApplyItemsAsync()
         {
@@ -81,6 +89,8 @@ namespace ProyectoTron6
         {
             Console.WriteLine("Ítem seleccionado: " + item.GetType().Name);
         }
+
+
         public void MoveLeftItem()
         {
             // Lógica para moverse al ítem a la izquierda

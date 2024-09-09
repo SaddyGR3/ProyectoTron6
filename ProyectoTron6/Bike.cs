@@ -92,23 +92,42 @@ namespace ProyectoTron6
                     break;
             }
         }
+        protected bool HasCollision(Node newPosition)
+        {
+            return IsCollidingWithBike(newPosition) || IsCollidingWithTrail(newPosition);
+        }
 
+        protected bool IsCollidingWithBike(Node newPosition)
+        {
+            return newPosition.Data == "EnemyBike" || newPosition.Data == "Jugador";
+        }
+
+        protected bool IsCollidingWithTrail(Node newPosition)
+        {
+            return newPosition.Data == "Trail";
+        }
+        protected void HandleCollision(Node newPosition)
+        {
+            if (IsCollidingWithBike(newPosition))
+            {
+                Console.WriteLine("Colisión entre motos: ambas destruidas");
+                this.Destroy();
+            }
+            else if (IsCollidingWithTrail(newPosition))
+            {
+                Console.WriteLine("Colisión con una estela: la moto se destruye");
+                this.Destroy();
+            }
+        }
         //Método para mover la moto
         protected void Move(Node newPosition)
         {
             if (newPosition != null)
             {
                 // Verificar colisiones
-                if (newPosition.Data == "EnemyBike" || newPosition.Data == "Jugador")
+                if (HasCollision(newPosition))
                 {
-                    Console.WriteLine("Colisión entre motos: ambas destruidas");
-                    //Aquí puedes agregar lógica para destruir ambas motos o finalizar el juego
-                    return;
-                }
-                else if (newPosition.Data == "Trail")
-                {
-                    Console.WriteLine("Colisión con una estela: la moto se destruye");
-                    //Aquí puedes agregar la lógica para destruir esta moto
+                    HandleCollision(newPosition);
                     return;
                 }
 
@@ -127,6 +146,12 @@ namespace ProyectoTron6
 
                 // Consumir combustible
                 combustible -= velocidad / 5;
+
+                if (combustible <= 0)
+                {
+                    Console.WriteLine("Combustible agotado: la moto se destruye.");
+                    this.Destroy();  // Llama al método de destrucción
+                }
             }
         }
 
@@ -146,14 +171,13 @@ namespace ProyectoTron6
             Console.WriteLine(isInvulnerable ? "Moto invulnerable" : "Moto vulnerable");
         }
 
-        public void Destroy()
+        public virtual void Destroy()
         {
-            // Lógica para destruir la moto: 
-            // Por ejemplo, eliminarla del juego, vaciar su estela, etc.
+            // Lógica para destruir la moto del jugador
             Console.WriteLine("La moto ha sido destruida.");
             currentPosition.Data = "";  // Liberar la posición actual
             estela.Clear();             // Vaciar la estela
-                                        // Aquí también podrías añadir cualquier otra lógica adicional, como detener su movimiento.
+
         }
 
         // Método para verificar si la moto es invulnerable
@@ -167,6 +191,7 @@ namespace ProyectoTron6
         {
             return "Bike"; //Valor por defecto
         }
+
 
     }
 }

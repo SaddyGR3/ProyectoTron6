@@ -9,6 +9,7 @@ namespace ProyectoTron6
     internal class Enemigos : Bike
     {
         public ItemQueue itemQueue = new ItemQueue();
+        public bool isDestroyed { get; private set; }
 
         public Enemigos(Node initialPosition) : base(initialPosition)
         {
@@ -38,9 +39,26 @@ namespace ProyectoTron6
             } while (!string.IsNullOrEmpty(freeNode.Data)); // Repetir si la celda no está libre
             return freeNode;
         }
-    
 
-    public void MoveRandom()
+        public override void Destroy()
+        {
+            Console.WriteLine("La moto ha sido destruida.");
+
+            // Limpiar la estela
+            foreach (var node in estela)
+            {
+                node.Data = "";  // Limpia los nodos de la estela
+            }
+            estela.Clear();
+
+            // Marcar la posición actual de la moto como vacía
+            currentPosition.Data = "";
+
+            // Marcar la moto como destruida
+            isDestroyed = true;
+        }
+
+        public void MoveRandom()
         {
             Random random = new Random();
             List<int> possibleDirections = new List<int> { 0, 1, 2, 3 }; // 0 = Up, 1 = Down, 2 = Left, 3 = Right

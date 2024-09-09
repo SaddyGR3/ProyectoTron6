@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ProyectoTron6
 {
-    internal abstract class Item
+    internal abstract class Item //Clase abstracta para los ítems
     {
         public abstract void Apply(Bike bike);
 
@@ -18,6 +18,11 @@ namespace ProyectoTron6
             if (bike.combustible < 100)
             {
                 bike.combustible = Math.Min(bike.combustible + 10, 100);
+            }
+            else
+            {
+                // Reenfilar el combustible si está lleno
+                bike.itemQueue.Enqueue(this);
             }
         }
     }
@@ -34,8 +39,8 @@ namespace ProyectoTron6
     {
         public override void Apply(Bike bike)
         {
-            // Verificar si la moto es invulnerable antes de destruirla
-            if (!bike.IsInvulnerable())
+            //Verificar si la moto es invulnerable antes de destruirla
+            if (!bike.IsInvulnerable()) //revisar esta parte si verifica True o False
             {
                 bike.Destroy();
             }
