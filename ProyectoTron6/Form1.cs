@@ -68,22 +68,23 @@ namespace ProyectoTron6
             // Inicializar lista de timers
             timersEnemigos = new List<System.Windows.Forms.Timer>();
 
+            RespawnItems();
 
             // Creación de 3 motos enemigas con posiciones únicas
             for (int i = 0; i < 3; i++)
             {
-                Node enemyStartNode;
+                Nodo enemyStartNode;
                 do
                 {
                     enemyStartNode = linkedList.GetNode(new Random().Next(0, GridSize), new Random().Next(0, GridSize));
-                } while (enemyStartNode == jugador.GetCurrentPosition() || enemigos.Any(e => e.GetCurrentPosition() == enemyStartNode));
+                } while (enemyStartNode == jugador.RPosActual() || enemigos.Any(e => e.RPosActual() == enemyStartNode));
 
                 var enemigo = new Enemigos(enemyStartNode);
                 enemigos.Add(enemigo);
 
                 // Configurar temporizador para cada enemigo con su velocidad
                 var timerEnemigo = new System.Windows.Forms.Timer();
-                timerEnemigo.Interval = GetSpeedInterval(enemigo.velocidad);
+                timerEnemigo.Interval = IntervaloVelocidad(enemigo.velocidad);
                 timerEnemigo.Tick += (sender, e) => Movimientoenemigo_Tick(enemigo);
                 timerEnemigo.Start();
 
@@ -93,7 +94,7 @@ namespace ProyectoTron6
 
             // Configurar temporizador para movimiento del jugador
             MovimientoJugador = new System.Windows.Forms.Timer();
-            MovimientoJugador.Interval = GetSpeedInterval(jugador.velocidad); // Inicializar con la velocidad del jugador
+            MovimientoJugador.Interval = IntervaloVelocidad(jugador.velocidad); // Inicializar con la velocidad del jugador
             MovimientoJugador.Tick += MovimientoJugador_Tick;
             MovimientoJugador.Start();
 
@@ -101,16 +102,16 @@ namespace ProyectoTron6
             this.KeyDown += new KeyEventHandler(Form1_KeyDown);
 
             // Actualiza las etiquetas con la información inicial
-            UpdateInfoLabels();
+            ActualizarLabels();
         }
 
         private void Movimientoenemigo_Tick(Enemigos enemigo)
         {
             enemigo.MoveRandom();
-            UpdateInfoLabels();
+            ActualizarLabels();
             this.Refresh();
         }
-        private void RemoveEnemy(Enemigos enemigo)
+        private void EliminarEnemigo(Enemigos enemigo)
         {
             // Detener el temporizador del enemigo
             var timer = timersEnemigos[enemigos.IndexOf(enemigo)];
@@ -121,47 +122,47 @@ namespace ProyectoTron6
             timersEnemigos.Remove(timer);
         }
 
-        private int GetSpeedInterval(int velocidad)
+        private int IntervaloVelocidad(int velocidad)
         {
             // Aquí calculas los milisegundos por nodo según la velocidad
             // Velocidad 10 es 4 nodos por segundo (1000ms / 4 = 250ms por nodo)
             return (int)(1000 / (2.2 + (velocidad - 2) * 0.2));
         }
-        private void CheckCollision(Bike moto1, Bike moto2)
+        private void VerColision(Moto moto1, Moto moto2)
         {
-            if (moto1.GetCurrentPosition() == moto2.GetCurrentPosition())
+            if (moto1.RPosActual() == moto2.RPosActual())
             {
                 // Si dos motos colisionan en la misma posición
-                moto1.Destroy();
-                moto2.Destroy();
+                moto1.Destruir();
+                moto2.Destruir();
 
                 // Si uno de los participantes es un enemigo, elimínalo
                 if (moto1 is Enemigos)
                 {
-                    RemoveEnemy((Enemigos)moto1);
+                    EliminarEnemigo((Enemigos)moto1);
                 }
 
                 if (moto2 is Enemigos)
                 {
-                    RemoveEnemy((Enemigos)moto2);
+                    EliminarEnemigo((Enemigos)moto2);
                 }
             }
         }
         private void MovimientoJugador_Tick(object sender, EventArgs e)
         {
             // Si el jugador está destruido, terminar el juego
-            if (jugador.isDestroyed)
+            if (jugador.Destruido)
             {
-                ShowGameOverMessage();  //Mostrar mensaje si el jugador está destruido
+                GameOvermsg();  //Mostrar mensaje si el jugador está destruido
                 return;
             }
 
             // Verificar la destrucción de enemigos y eliminarlos
             foreach (var enemigo in enemigos.ToList()) // Usamos ToList() para evitar problemas al modificar la lista durante la iteración
             {
-                if (enemigo.isDestroyed)
+                if (enemigo.Destruido)
                 {
-                    RemoveEnemy(enemigo); // Elimina el enemigo si está destruido
+                    EliminarEnemigo(enemigo); // Elimina el enemigo si está destruido
                     continue; // Pasar al siguiente enemigo
                 }
 
@@ -175,22 +176,22 @@ namespace ProyectoTron6
                 switch (lastDirection)
                 {
                     case Keys.W:
-                        jugador.MoveUp();
+                        jugador.MoverArriba();
                         break;
                     case Keys.S:
-                        jugador.MoveDown();
+                        jugador.MoverAbajo();
                         break;
                     case Keys.A:
-                        jugador.MoveLeft();
+                        jugador.MoverIzquierda();
                         break;
                     case Keys.D:
-                        jugador.MoveRight();
+                        jugador.MoverDerecha();
                         break;
                 }
             }
 
             // Actualizar las etiquetas de información y redibujar
-            UpdateInfoLabels();
+            ActualizarLabels();
             this.Refresh();
         }
         private void Form1_KeyDown(object sender, KeyEventArgs e)
@@ -199,7 +200,7 @@ namespace ProyectoTron6
             lastDirection = e.KeyCode;
         }
 
-        private void UpdateInfoLabels()
+        private void ActualizarLabels()
         {
             // Actualizar la etiqueta de velocidad del jugador
             lblVelocidadJugador.Text = $"Velocidad Jugador: {jugador.velocidad}";
@@ -211,7 +212,7 @@ namespace ProyectoTron6
             var velocidadesEnemigos = string.Join(", ", enemigos.Select(e => e.velocidad));
             lblVelocidadEnemigos.Text = $"Velocidad Enemigos: {velocidadesEnemigos}";
         }
-        public void ShowGameOverMessage()
+        public void GameOvermsg()
         {
             using (Graphics g = CreateGraphics())
             {
@@ -236,78 +237,150 @@ namespace ProyectoTron6
             // Cerrar la aplicación después de 2 segundos
             Application.Exit();
         }
-
-
-        private void Form1_Paint(object sender, PaintEventArgs e)
+        private void RespawnItems()
         {
-            Graphics g = e.Graphics;
+            List<Nodo> availableNodes = NodosDisponibles(); // Obtener nodos disponibles
+            Random rand = new Random();
 
-            int panelHeight = 80; // Espacio reservado para los datos
-            int matrizSize = 600; // Tamaño fijo de la matriz (cuadrada 30x30)
-            int cellSize = matrizSize / GridSize; // Tamaño de cada celda para que sean cuadradas
+            // Crear 3 ítems (FuelCell, TrailGrowth, Bomb)
+            if (availableNodes.Count >= 3)
+            {
+                Nodo fuelNode = availableNodes[rand.Next(availableNodes.Count)];
+                fuelNode.Data = "FuelCell";
+                availableNodes.Remove(fuelNode);
+
+                Nodo trailNode = availableNodes[rand.Next(availableNodes.Count)];
+                trailNode.Data = "TrailGrowth";
+                availableNodes.Remove(trailNode);
+
+                Nodo bombNode = availableNodes[rand.Next(availableNodes.Count)];
+                bombNode.Data = "Bomb";
+                availableNodes.Remove(bombNode);
+            }
+
+            // Crear 2 poderes (Shield, HyperSpeed)
+            if (availableNodes.Count >= 2)
+            {
+                Nodo shieldNode = availableNodes[rand.Next(availableNodes.Count)];
+                shieldNode.Data = "Shield";
+                availableNodes.Remove(shieldNode);
+
+                Nodo speedNode = availableNodes[rand.Next(availableNodes.Count)];
+                speedNode.Data = "HyperSpeed";
+                availableNodes.Remove(speedNode);
+            }
+
+            this.Refresh(); // Refrescar la pantalla para dibujar los ítems y poderes
+        }
+        private List<Nodo> NodosDisponibles()
+        {
+            List<Nodo> availableNodes = new List<Nodo>();
 
             for (int i = 0; i < GridSize; i++)
             {
                 for (int j = 0; j < GridSize; j++)
                 {
-                    Node node = linkedList.GetNode(i, j);
-                    Rectangle rect = new Rectangle(j * cellSize, panelHeight + i * cellSize, cellSize, cellSize); // Dibuja debajo del panel
+                    Nodo node = linkedList.GetNode(i, j);
+
+                    // Verifica si el nodo está ocupado por el jugador o enemigos
+                    bool isOccupied = jugador.RPosActual() == node || jugador.GetTrail().Contains(node);
+
+                    foreach (var enemigo in enemigos)
+                    {
+                        if (enemigo.RPosActual() == node || enemigo.GetTrail().Contains(node))
+                        {
+                            isOccupied = true;
+                            break;
+                        }
+                    }
+
+                    if (!isOccupied)
+                    {
+                        availableNodes.Add(node); // Añadir nodos vacíos a la lista
+                    }
+                }
+            }
+
+            return availableNodes;
+        }
+
+        private void Form1_Paint(object sender, PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+
+            int panelHeight = 80;
+            int matrizSize = 600;
+            int cellSize = matrizSize / GridSize;
+
+            for (int i = 0; i < GridSize; i++)
+            {
+                for (int j = 0; j < GridSize; j++)
+                {
+                    Nodo node = linkedList.GetNode(i, j);
+                    Rectangle rect = new Rectangle(j * cellSize, panelHeight + i * cellSize, cellSize, cellSize);
 
                     // Dibuja la estela del jugador en amarillo
                     if (jugador.GetTrail().Contains(node))
                     {
-                        g.FillRectangle(Brushes.Yellow, rect); // Dibuja la estela en amarillo
+                        g.FillRectangle(Brushes.Yellow, rect);
                     }
-                    // Dibuja la moto del jugador
-                    else if (node == jugador.GetCurrentPosition())
+                    else if (node == jugador.RPosActual())
                     {
-                        g.FillRectangle(Brushes.Red, rect); // Dibuja la moto del jugador como un cuadro rojo
+                        g.FillRectangle(Brushes.Red, rect);
                     }
-                    // Dibuja los items según su tipo (en función del valor del string en Node.Data)
+                    // Dibuja los ítems
                     else if (node.Data == "FuelCell")
                     {
-                        g.FillRectangle(Brushes.Purple, rect); // Dibuja una celda de combustible en morado
+                        g.FillRectangle(Brushes.Purple, rect);
                     }
                     else if (node.Data == "TrailGrowth")
                     {
-                        g.FillRectangle(Brushes.Green, rect); // Dibuja el crecimiento de estela en verde
+                        g.FillRectangle(Brushes.Green, rect);
                     }
                     else if (node.Data == "Bomb")
                     {
-                        g.FillRectangle(Brushes.Black, rect); // Dibuja la bomba en negro
+                        g.FillRectangle(Brushes.Black, rect);
+                    }
+                    // Dibuja los poderes
+                    else if (node.Data == "Shield")
+                    {
+                        g.FillRectangle(Brushes.Cyan, rect); // Shield en color cyan
+                    }
+                    else if (node.Data == "HyperSpeed")
+                    {
+                        g.FillRectangle(Brushes.Orange, rect); // HyperSpeed en color naranja
                     }
                     else
                     {
-                        // Verifica si alguno de los enemigos ocupa este nodo o si es parte de su estela
+                        // Lógica para dibujar enemigos o nodos vacíos
                         bool isEnemyTrail = false;
                         foreach (var enemigo in enemigos)
                         {
                             if (enemigo.GetTrail().Contains(node))
                             {
-                                g.FillRectangle(Brushes.Blue, rect); // Dibuja la estela del enemigo en azul
+                                g.FillRectangle(Brushes.Blue, rect);
                                 isEnemyTrail = true;
-                                break; // Si es parte de la estela de algún enemigo, no necesitas seguir verificando
+                                break;
                             }
-                            else if (node == enemigo.GetCurrentPosition())
+                            else if (node == enemigo.RPosActual())
                             {
-                                g.FillRectangle(Brushes.Green, rect); // Dibuja la moto del enemigo como un cuadro verde
+                                g.FillRectangle(Brushes.Green, rect);
                                 isEnemyTrail = true;
                                 break;
                             }
                         }
 
-                        // Si no es parte de la estela ni la moto de ningún enemigo, dibuja un cuadro negro
                         if (!isEnemyTrail)
                         {
-                            g.FillRectangle(Brushes.Black, rect); // Dibuja los nodos como cuadros negros
+                            g.FillRectangle(Brushes.Black, rect);
                         }
                     }
 
-                    // Dibujar los bordes de las celdas
+                    // Dibujar bordes de las celdas
                     g.DrawRectangle(Pens.Gray, rect);
                 }
             }
         }
-
-    }
+    }      
+    
 }

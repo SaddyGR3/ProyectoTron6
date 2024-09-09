@@ -8,41 +8,41 @@ namespace ProyectoTron6
 {
     internal abstract class Item //Clase abstracta para los ítems
     {
-        public abstract void Apply(Bike bike);
+        public abstract void Aplicar(Moto moto);
 
     }
-    internal class FuelCell : Item
+    internal class Combustible : Item
     {
-        public override void Apply(Bike bike)
+        public override void Aplicar(Moto moto)
         {
-            if (bike.combustible < 100)
+            if (moto.combustible < 100)
             {
-                bike.combustible = Math.Min(bike.combustible + 10, 100);
+                moto.combustible = Math.Min(moto.combustible + 10, 100);
             }
             else
             {
                 // Reenfilar el combustible si está lleno
-                bike.itemQueue.Enqueue(this);
+                moto.itemQueue.Enqueue(this);
             }
         }
     }
-    internal class TrailGrowth : Item
+    internal class Incrementar : Item
     {
-        public override void Apply(Bike bike)
+        public override void Aplicar(Moto moto)
         {
             Random random = new Random();
-            int increase = random.Next(2, 6); // Incremento aleatorio entre 2 y 5
-            bike.tamañoestela += increase;
+            int aumentar = random.Next(2, 6); // Incremento aleatorio entre 2 y 5
+            moto.tamañoestela += aumentar;
         }
     }
-    internal class Bomb : Item
+    internal class Bomba : Item
     {
-        public override void Apply(Bike bike)
+        public override void Aplicar(Moto moto)
         {
             //Verificar si la moto es invulnerable antes de destruirla
-            if (!bike.IsInvulnerable()) //revisar esta parte si verifica True o False
+            if (!moto.Invulnerable()) //revisar esta parte si verifica True o False
             {
-                bike.Destroy();
+                moto.Destruir();
             }
             else
             {
@@ -50,36 +50,36 @@ namespace ProyectoTron6
             }
         }
     }
-    internal abstract class Power
+    internal abstract class Poder
     {
-        public abstract void Activate(Bike bike);
+        public abstract void Activar(Moto moto);
     }
 
-    internal class Shield : Power
+    internal class Escudo : Poder
     {
-        public override void Activate(Bike bike)
+        public override void Activar(Moto moto)
         {
-            bike.SetInvulnerable(5); // Invulnerabilidad durante 5 segundos
+            moto.HacerInvulnerable(5); // Invulnerabilidad durante 5 segundos
             Task.Run(async () =>
             {
                 await Task.Delay(5000); // Esperar 5 segundos
-                bike.SetInvulnerable(0); // Desactivar invulnerabilidad
+                moto.HacerInvulnerable(0); // Desactivar invulnerabilidad
             });
         }
     }
 
-    internal class HyperSpeed : Power
+    internal class HiperVelocidad : Poder
     {
-        public override void Activate(Bike bike)
+        public override void Activar(Moto moto)
         {
             Random random = new Random();
-            int increase = random.Next(1, 11);
-            bike.velocidad += increase;
+            int incrementoVelocidad = random.Next(1, 11);
+            moto.velocidad += incrementoVelocidad;
             Task.Run(async () =>
             {
-                int duration = random.Next(2000, 10000); // Duración aleatoria entre 2 y 10 segundos
-                await Task.Delay(duration);
-                bike.velocidad -= increase; // Restaurar velocidad original
+                int duracion = random.Next(2000, 10000); // Duración aleatoria entre 2 y 10 segundos
+                await Task.Delay(duracion);
+                moto.velocidad -= incrementoVelocidad; // Restaurar velocidad original
             });
         }
     }

@@ -9,17 +9,17 @@ namespace ProyectoTron6
 {
     internal class Matriz
     {
-        public Node[,] Matrix { get; private set; }
+        public Nodo[,] Matrix { get; private set; }
 
         public Matriz(int rows, int cols)
         {
-            Matrix = new Node[rows, cols];
+            Matrix = new Nodo[rows, cols];
             //Inicializa la matriz con sus  nodos.
             for (int i = 0; i < rows; i++) //Bucle que itera sobre cada fila
             {
                 for (int j = 0; j < cols; j++)//En cada fila itera sobre toda la columna.
                 {
-                    Matrix[i, j] = new Node();//Crea un nodo en cada ubicacion.
+                    Matrix[i, j] = new Nodo();//Crea un nodo en cada ubicacion.
                 }
             }
             //Connecta los nodos en las 4 direcciones.
@@ -34,10 +34,10 @@ namespace ProyectoTron6
                 }
             }
         }
-        public Node FindFreeNode()
+        public Nodo Nodolibre()
         {
             Random rand = new Random();
-            Node freeNode;
+            Nodo freeNode;
             do
             {
                 int row = rand.Next(0, Matrix.GetLength(0)); // Filas
@@ -48,7 +48,7 @@ namespace ProyectoTron6
         }
 
         //Metodo para obtener un nodo especifico de la matriz
-        public Node GetNode(int row, int col)
+        public Nodo GetNode(int row, int col)
         {
             return Matrix[row, col];
         }

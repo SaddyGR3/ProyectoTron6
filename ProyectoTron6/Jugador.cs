@@ -6,42 +6,38 @@ using System.Threading.Tasks;
 
 namespace ProyectoTron6
 {
-    internal class Jugador : Bike
+    internal class Jugador : Moto
     {
         private LinkedListNode<Item> currentItem;
         private ItemQueue itemQueue;
-        public bool isDestroyed { get; private set; }
+        public bool Destruido { get; private set; }
 
-        public Jugador(Node initialPosition) : base(initialPosition)
+        public Jugador(Nodo initialPosition) : base(initialPosition)
         {
-            currentPosition.Data = "Jugador"; // Cambia el dato que almacena el nodo a PlayerBike
+            PosActual.Data = "Jugador"; //Cambia el dato que almacena el nodo a PlayerBike
             itemQueue = new ItemQueue();
-            isDestroyed = false;
+            Destruido = false;
         }
-        public void MoveUp()
+        public void MoverArriba()
         {
-            Move(currentPosition.Up);
+            Mover(PosActual.Up);
         }
-
-        public void MoveDown()
+        public void MoverAbajo()
         {
-            Move(currentPosition.Down);
+            Mover(PosActual.Down);
         }
-
-        public void MoveLeft()
+        public void MoverIzquierda()
         {
-            Move(currentPosition.Left);
+            Mover(PosActual.Left);
         }
-
-        public void MoveRight()
+        public void MoverDerecha()
         {
-            Move(currentPosition.Right);
+            Mover(PosActual.Right);
         }
-
-        public override void Destroy()
+        public override void Destruir()
         {
-            base.Destroy();
-            isDestroyed = true;  // Marcar como destruido
+            base.Destruir();
+            Destruido = true;  // Marcar como destruido
         }
         public async Task ApplyItemsAsync()
         {
@@ -50,25 +46,25 @@ namespace ProyectoTron6
                 var item = itemQueue.Dequeue();
                 if (item != null)
                 {
-                    item.Apply(this);
+                    item.Aplicar(this);
                     await Task.Delay(1000); // Espera 1 segundo
                 }
             }
         }
 
-        public void AddItem(Item item)
+        public void AñadirItem(Item item)
         {
             itemQueue.Enqueue(item);
         }
-        public void UseItem()
+        public void UsarItem()
         {
-            if (itemQueue.Count > 0)
+            if (itemQueue.Contador > 0)
             {
                 var item = itemQueue.Dequeue();
-                item.Apply(this);
+                item.Aplicar(this);
             }
         }
-        public void NavigateItems(string direction)
+        public void CambiarItem(string direction)
         {
             if (currentItem == null) currentItem = itemQueue.GetItems().First;
 
@@ -82,10 +78,10 @@ namespace ProyectoTron6
             }
 
             // Mostrar el ítem seleccionado al jugador
-            DisplayItem(currentItem.Value);
+            VerItems(currentItem.Value);
         }
 
-        private void DisplayItem(Item item)
+        private void VerItems(Item item)
         {
             Console.WriteLine("Ítem seleccionado: " + item.GetType().Name);
         }

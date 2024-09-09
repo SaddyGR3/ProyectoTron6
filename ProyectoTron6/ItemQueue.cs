@@ -9,16 +9,14 @@ namespace ProyectoTron6
     internal class ItemQueue
     {
         private LinkedList<Item> items = new LinkedList<Item>();
-
-        //Este método solo gestiona la cola. No tiene referencia a la moto,solo se usa aca.
-        public int Count
+        public int Contador
         {
             get { return items.Count; }
         }
 
         public void Enqueue(Item item)
         {
-            if (item is FuelCell)
+            if (item is Combustible)
             {
                 items.AddFirst(item); //Celdas de combustible al frente
             }

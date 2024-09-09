@@ -6,31 +6,31 @@ using System.Threading.Tasks;
 
 namespace ProyectoTron6
 {
-    internal class Enemigos : Bike
+    internal class Enemigos : Moto
     {
         public ItemQueue itemQueue = new ItemQueue();
-        public bool isDestroyed { get; private set; }
+        public bool Destruido { get; private set; }
 
-        public Enemigos(Node initialPosition) : base(initialPosition)
+        public Enemigos(Nodo initialPosition) : base(initialPosition)
         {
-            currentPosition.Data = "EnemyBike"; // Cambia el dato que almacena el nodo a EnemyBike
+            PosActual.Data = "EnemyBike"; //Cambia el dato que almacena el nodo a EnemyBike
         }
 
-        public void DropItems(Matriz grid)
+        public void SoltarItems(Matriz grid)
         {
             foreach (var item in itemQueue.GetItems())
             {
-                Node freeNode = FindFreeNode(grid); // Encuentra una celda libre
-                freeNode.Data = item.GetType().Name; // Coloca el ítem en esa celda como una representación del tipo
+                Nodo freeNode = BuscarNodoLibre(grid); //Encuentra una celda libre
+                freeNode.Data = item.GetType().Name; //Coloca el ítem en esa celda como una representación del tipo
             }
-            itemQueue = new ItemQueue(); // Vaciar la cola después de soltar los ítems
+            itemQueue = new ItemQueue(); //Vaciar la cola después de soltar los ítems
         }
 
-        // Encuentra una celda libre en la cuadrícula
-        private Node FindFreeNode(Matriz grid)
+        //Encuentra una celda libre en la cuadrícula
+        private Nodo BuscarNodoLibre(Matriz grid)
         {
             Random rand = new Random();
-            Node freeNode;
+            Nodo freeNode;
             do
             {
                 int x = rand.Next(0, grid.Matrix.GetLength(0)); // Filas
@@ -40,7 +40,7 @@ namespace ProyectoTron6
             return freeNode;
         }
 
-        public override void Destroy()
+        public override void Destruir()
         {
             Console.WriteLine("La moto ha sido destruida.");
 
@@ -52,10 +52,10 @@ namespace ProyectoTron6
             estela.Clear();
 
             // Marcar la posición actual de la moto como vacía
-            currentPosition.Data = "";
+            PosActual.Data = "";
 
             // Marcar la moto como destruida
-            isDestroyed = true;
+            Destruido = true;
         }
 
         public void MoveRandom()
@@ -63,43 +63,41 @@ namespace ProyectoTron6
             Random random = new Random();
             List<int> possibleDirections = new List<int> { 0, 1, 2, 3 }; // 0 = Up, 1 = Down, 2 = Left, 3 = Right
 
-            // Evitar que se mueva en dirección contraria a la actual
-            switch (currentDirection)
+            switch (DirActual)
             {
                 case "up":
-                    possibleDirections.Remove(1); //No permitir moverse hacia abajo
+                    possibleDirections.Remove(1);
                     break;
                 case "down":
-                    possibleDirections.Remove(0); //No permitir moverse hacia arriba
+                    possibleDirections.Remove(0);
                     break;
                 case "left":
-                    possibleDirections.Remove(3); //No permitir moverse hacia la derecha
+                    possibleDirections.Remove(3);
                     break;
                 case "right":
-                    possibleDirections.Remove(2); //No permitir moverse hacia la izquierda
+                    possibleDirections.Remove(2);
                     break;
             }
 
-            // Elegir una dirección válida
             int direction = possibleDirections[random.Next(possibleDirections.Count)];
 
             switch (direction)
             {
                 case 0:
-                    Move(currentPosition.Up);
-                    currentDirection = "up";
+                    Mover(PosActual.Up);
+                    DirActual = "up";
                     break;
                 case 1:
-                    Move(currentPosition.Down);
-                    currentDirection = "down";
+                    Mover(PosActual.Down);
+                    DirActual = "down";
                     break;
                 case 2:
-                    Move(currentPosition.Left);
-                    currentDirection = "left";
+                    Mover(PosActual.Left);
+                    DirActual = "left";
                     break;
                 case 3:
-                    Move(currentPosition.Right);
-                    currentDirection = "right";
+                    Mover(PosActual.Right);
+                    DirActual = "right";
                     break;
             }
     }   }

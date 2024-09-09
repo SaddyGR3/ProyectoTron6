@@ -7,15 +7,15 @@ using System.Xml.Linq;
 
 namespace ProyectoTron6
 {
-    internal class Node
+    internal class Nodo
     {
         public string Data { get; set; }
-        public Node Up { get; set; }
-        public Node Down { get; set; }
-        public Node Left { get; set; }
-        public Node Right { get; set; }
+        public Nodo Up { get; set; }
+        public Nodo Down { get; set; }
+        public Nodo Left { get; set; }
+        public Nodo Right { get; set; }
 
-        public Node()
+        public Nodo()
         {
             Data = "";
             Up = null;
