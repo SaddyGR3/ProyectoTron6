@@ -8,7 +8,7 @@ namespace ProyectoTron6
 {
     internal class Moto
     {
-        protected Nodo PosActual; 
+        public Nodo PosActual; 
         public int velocidad;
         public int combustible;
         public LinkedList<Nodo> estela;
@@ -17,6 +17,7 @@ namespace ProyectoTron6
         public ItemQueue itemQueue = new ItemQueue();
         private bool invulnerabilidad = false;
         protected string DirActual; //Para el movimiento continuado del jugador
+        private string direccionActual = "derecha";
 
 
         public Moto(Nodo PosInicial)
@@ -43,12 +44,23 @@ namespace ProyectoTron6
         {
             return PosActual;
         }
-
+        public string RDirActual()
+        {
+            return DirActual;
+        }
         //Método para establecer la dirección
         public void EstablecerDireccion(string Direccion)
         {
+            if ((DirActual == "arriba" && Direccion == "abajo") ||
+                (DirActual == "abajo" && Direccion == "arriba") ||
+                (DirActual == "izquierda" && Direccion == "derecha") ||
+                (DirActual == "derecha" && Direccion == "izquierda"))
+            {
+                return; // No permitir giros de 180 grados
+            }
             DirActual = Direccion;
         }
+
 
         //Devuelve la estela de la moto
         public LinkedList<Nodo> GetTrail()
@@ -62,16 +74,16 @@ namespace ProyectoTron6
             switch (DirActual)
             {
                 case "arriba":
-                    Mover(PosActual.Up);
+                    Mover(PosActual.Up, "arriba");
                     break;
                 case "abajo":
-                    Mover(PosActual.Down);
+                    Mover(PosActual.Down, "abajo");
                     break;
                 case "Izquierda":
-                    Mover(PosActual.Left);
+                    Mover(PosActual.Left, "izquierda");
                     break;
                 case "Derecha":
-                    Mover(PosActual.Right);
+                    Mover(PosActual.Right, "derecha");
                     break;
             }
         }
@@ -103,10 +115,19 @@ namespace ProyectoTron6
             }
         }
         //Método para mover la moto
-        protected void Mover(Nodo posNueva)
+        protected void Mover(Nodo posNueva, string direccionNueva)
         {
             if (posNueva != null)
             {
+                // Evitamos giros bruscos hacia la dirección opuesta.
+                if ((direccionActual == "arriba" && direccionNueva == "abajo") ||
+                    (direccionActual == "abajo" && direccionNueva == "arriba") ||
+                    (direccionActual == "izquierda" && direccionNueva == "derecha") ||
+                    (direccionActual == "derecha" && direccionNueva == "izquierda"))
+                {
+                    return; // No permitimos cambiar bruscamente hacia la dirección opuesta.
+                }
+
                 // Verificar colisiones
                 if (Colision(posNueva))
                 {
@@ -115,7 +136,7 @@ namespace ProyectoTron6
                 }
 
                 //Si no hay colisión, continuar moviendo la moto
-                estela.AddFirst(PosActual); //Agrega la posicion actual al inicio de la estela
+                estela.AddFirst(PosActual); // Agrega la posicion actual al inicio de la estela
                 if (estela.Count > tamañoestela)
                 {
                     Nodo lastNode = estela.Last.Value; //Obtiene el último nodo de la estela
@@ -123,17 +144,20 @@ namespace ProyectoTron6
                     estela.RemoveLast(); //Elimina el último nodo de la estela
                 }
 
-                PosActual.Data = "Trail"; //Marcar la posición anterior como estela
-                PosActual = posNueva; //Mover a la nueva posición
+                PosActual.Data = "Trail"; // Marcar la posición anterior como estela
+                PosActual = posNueva; // Mover a la nueva posición
                 PosActual.Data = DatadeMoto(); // Marcar la nueva posición como la moto
 
                 // Consumir combustible
                 combustible -= velocidad / 5;
 
                 if (combustible <= 0)
-                {;
+                {
                     this.Destruir();  //Combustible agotado,se destruye.
                 }
+
+                // Actualizamos la dirección actual si el movimiento fue exitoso.
+                direccionActual = direccionNueva;
             }
         }
 

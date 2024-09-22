@@ -20,19 +20,22 @@ namespace ProyectoTron6
         }
         public void MoverArriba()
         {
-            Mover(PosActual.Up);
+            Mover(PosActual.Up, "arriba"); // Agregar la dirección "arriba"
         }
+
         public void MoverAbajo()
         {
-            Mover(PosActual.Down);
+            Mover(PosActual.Down, "abajo"); // Agregar la dirección "abajo"
         }
+
         public void MoverIzquierda()
         {
-            Mover(PosActual.Left);
+            Mover(PosActual.Left, "izquierda"); // Agregar la dirección "izquierda"
         }
+
         public void MoverDerecha()
         {
-            Mover(PosActual.Right);
+            Mover(PosActual.Right, "derecha"); // Agregar la dirección "derecha"
         }
         public override void Destruir()
         {

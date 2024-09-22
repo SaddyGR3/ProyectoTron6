@@ -26,6 +26,7 @@ namespace ProyectoTron6
             itemQueue = new ItemQueue(); //Vaciar la cola después de soltar los ítems
         }
 
+
         //Encuentra una celda libre en la cuadrícula
         private Nodo BuscarNodoLibre(Matriz grid)
         {
@@ -63,43 +64,43 @@ namespace ProyectoTron6
             Random random = new Random();
             List<int> possibleDirections = new List<int> { 0, 1, 2, 3 }; // 0 = Up, 1 = Down, 2 = Left, 3 = Right
 
-            switch (DirActual)
-            {
-                case "up":
-                    possibleDirections.Remove(1);
-                    break;
-                case "down":
-                    possibleDirections.Remove(0);
-                    break;
-                case "left":
-                    possibleDirections.Remove(3);
-                    break;
-                case "right":
-                    possibleDirections.Remove(2);
-                    break;
-            }
+            // Eliminar direcciones que llevarían a su propia estela
+            if (PosActual.Up != null && PerteneceAEstela(PosActual.Up)) possibleDirections.Remove(0);   // Arriba
+            if (PosActual.Down != null && PerteneceAEstela(PosActual.Down)) possibleDirections.Remove(1); // Abajo
+            if (PosActual.Left != null && PerteneceAEstela(PosActual.Left)) possibleDirections.Remove(2); // Izquierda
+            if (PosActual.Right != null && PerteneceAEstela(PosActual.Right)) possibleDirections.Remove(3); // Derecha
+
+            // Si no hay direcciones posibles, no moverse
+            if (possibleDirections.Count == 0) return;
 
             int direction = possibleDirections[random.Next(possibleDirections.Count)];
 
             switch (direction)
             {
                 case 0:
-                    Mover(PosActual.Up);
+                    Mover(PosActual.Up, "arriba");
                     DirActual = "up";
                     break;
                 case 1:
-                    Mover(PosActual.Down);
+                    Mover(PosActual.Down, "abajo");
                     DirActual = "down";
                     break;
                 case 2:
-                    Mover(PosActual.Left);
+                    Mover(PosActual.Left, "izquierda");
                     DirActual = "left";
                     break;
                 case 3:
-                    Mover(PosActual.Right);
+                    Mover(PosActual.Right, "derecha");
                     DirActual = "right";
                     break;
             }
-    }   }
+        }
+
+        //Nuevo método para verificar si el nodo pertenece a la estela de la propia moto
+        private bool PerteneceAEstela(Nodo nodo)
+        {
+            return estela.Contains(nodo); //Verifica si el nodo está en la estela de la moto
+        }
+    }
 }
 

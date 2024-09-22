@@ -15,7 +15,7 @@ namespace ProyectoTron6
     {
         public override void Aplicar(Moto moto)
         {
-            if (moto.combustible < 100)
+            if (moto.combustible <= 90) // Solo aplica si el combustible es <= 90
             {
                 moto.combustible = Math.Min(moto.combustible + 10, 100);
             }

@@ -11,10 +11,19 @@ namespace ProyectoTron6
         private System.Windows.Forms.Timer MovimientoJugador;
         private Keys lastDirection;
         private List<System.Windows.Forms.Timer> timersEnemigos;
+        private System.Windows.Forms.Timer ItemUsageTimer;
         //Variables para mostrar la información del jugador y enemigos
         private Label lblVelocidadJugador;
         private Label lblCombustibleJugador;
         private Label lblVelocidadEnemigos;
+        //Imagenes de los objetos
+        private Image imgcombustible;
+        private Image imgincremento;
+        private Image imgbomba;
+        private Image imgescudo;
+        private Image imgacelerar;
+
+        private Keys currentDirection = Keys.D;
 
         public Form1()
         {
@@ -31,6 +40,14 @@ namespace ProyectoTron6
             // Configurar fondo negro para el formulario completo
             // Configurar fondo negro para el formulario completo
             this.BackColor = Color.Black;
+
+            //Imagenes cargadas
+            imgcombustible = Image.FromFile("Resources/combustible.png");
+            imgincremento = Image.FromFile("Resources/incremento.png");
+            imgbomba = Image.FromFile("Resources/bomba.png");
+            imgescudo = Image.FromFile("Resources/escudo.png");
+            imgacelerar = Image.FromFile("Resources/acelerar.png");
+
 
             // Crear etiquetas para la información del jugador y enemigos
             lblVelocidadJugador = new Label();
@@ -68,6 +85,12 @@ namespace ProyectoTron6
             // Inicializar lista de timers
             timersEnemigos = new List<System.Windows.Forms.Timer>();
 
+            // Configurar temporizador para el uso de ítems
+            ItemUsageTimer = new System.Windows.Forms.Timer();
+            ItemUsageTimer.Interval = 1000; // 1 segundo
+            ItemUsageTimer.Tick += ItemUsageTimer_Tick;
+            ItemUsageTimer.Start();
+
             RespawnItems();
 
             // Creación de 3 motos enemigas con posiciones únicas
@@ -104,7 +127,15 @@ namespace ProyectoTron6
             // Actualiza las etiquetas con la información inicial
             ActualizarLabels();
         }
-
+        private void ItemUsageTimer_Tick(object sender, EventArgs e)
+        {
+            var item = jugador.itemQueue.Dequeue();
+            if (item != null)
+            {
+                item.Aplicar(jugador); // Aplicar el ítem a la moto del jugador
+                ActualizarLabels(); // Actualiza las etiquetas tras aplicar el ítem
+            }
+        }
         private void Movimientoenemigo_Tick(Enemigos enemigo)
         {
             enemigo.MoveRandom();
@@ -153,7 +184,7 @@ namespace ProyectoTron6
             // Si el jugador está destruido, terminar el juego
             if (jugador.Destruido)
             {
-                GameOvermsg();  //Mostrar mensaje si el jugador está destruido
+                GameOvermsg();  // Mostrar mensaje si el jugador está destruido
                 return;
             }
 
@@ -170,24 +201,22 @@ namespace ProyectoTron6
                 enemigo.MoveRandom();
             }
 
-            // Movimiento del jugador basado en la última dirección
-            if (lastDirection != Keys.None)
+            // Movimiento del jugador basado en la última dirección válida
+            // Movimiento del jugador basado en la última dirección válida (currentDirection)
+            switch (currentDirection)
             {
-                switch (lastDirection)
-                {
-                    case Keys.W:
-                        jugador.MoverArriba();
-                        break;
-                    case Keys.S:
-                        jugador.MoverAbajo();
-                        break;
-                    case Keys.A:
-                        jugador.MoverIzquierda();
-                        break;
-                    case Keys.D:
-                        jugador.MoverDerecha();
-                        break;
-                }
+                case Keys.W:
+                    jugador.MoverArriba();
+                    break;
+                case Keys.S:
+                    jugador.MoverAbajo();
+                    break;
+                case Keys.A:
+                    jugador.MoverIzquierda();
+                    break;
+                case Keys.D:
+                    jugador.MoverDerecha();
+                    break;
             }
 
             // Actualizar las etiquetas de información y redibujar
@@ -196,8 +225,26 @@ namespace ProyectoTron6
         }
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            // Guardar la última dirección de movimiento
-            lastDirection = e.KeyCode;
+            // Solo cambiar la dirección si no es opuesta a la actual
+            switch (e.KeyCode)
+            {
+                case Keys.W:
+                    if (currentDirection != Keys.S)  // No permitir giro de 180 grados
+                        currentDirection = Keys.W;
+                    break;
+                case Keys.S:
+                    if (currentDirection != Keys.W)
+                        currentDirection = Keys.S;
+                    break;
+                case Keys.A:
+                    if (currentDirection != Keys.D)
+                        currentDirection = Keys.A;
+                    break;
+                case Keys.D:
+                    if (currentDirection != Keys.A)
+                        currentDirection = Keys.D;
+                    break;
+            }
         }
 
         private void ActualizarLabels()
@@ -239,39 +286,48 @@ namespace ProyectoTron6
         }
         private void RespawnItems()
         {
-            List<Nodo> availableNodes = NodosDisponibles(); // Obtener nodos disponibles
+            List<Nodo> availableNodes = NodosDisponibles(); 
             Random rand = new Random();
+            int cantidadItems = 10; //variable para la cantidad de ítems a generar
 
-            // Crear 3 ítems (FuelCell, TrailGrowth, Bomb)
-            if (availableNodes.Count >= 3)
+            if (availableNodes.Count >= cantidadItems)
             {
-                Nodo fuelNode = availableNodes[rand.Next(availableNodes.Count)];
-                fuelNode.Data = "FuelCell";
-                availableNodes.Remove(fuelNode);
+                for (int i = 0; i < cantidadItems; i++)
+                {
+                    //Elige un nodo al azar para colocar el ítem
+                    Nodo selectedNode = availableNodes[rand.Next(availableNodes.Count)];
+                    availableNodes.Remove(selectedNode); //Remueve el nodo para que no respawnee otro item encima
 
-                Nodo trailNode = availableNodes[rand.Next(availableNodes.Count)];
-                trailNode.Data = "TrailGrowth";
-                availableNodes.Remove(trailNode);
+                    //Asigna ítems basados en el índice 'i' o al azar
+                    switch (i % 5) //Se puede ajustar para variarlo
+                    {
+                        case 0:
+                            selectedNode.Data = "Combustible";
+                            break;
+                        case 1:
+                            selectedNode.Data = "Incremento";
+                            break;
+                        case 2:
+                            selectedNode.Data = "Bomba";
+                            break;
+                        case 3:
+                            selectedNode.Data = "Escudo";
 
-                Nodo bombNode = availableNodes[rand.Next(availableNodes.Count)];
-                bombNode.Data = "Bomb";
-                availableNodes.Remove(bombNode);
+                            break;
+                        case 4:
+                            selectedNode.Data = "Acelerar";
+                            break;
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine("No hay suficientes nodos disponibles para generar todos los ítems.");
             }
 
-            // Crear 2 poderes (Shield, HyperSpeed)
-            if (availableNodes.Count >= 2)
-            {
-                Nodo shieldNode = availableNodes[rand.Next(availableNodes.Count)];
-                shieldNode.Data = "Shield";
-                availableNodes.Remove(shieldNode);
-
-                Nodo speedNode = availableNodes[rand.Next(availableNodes.Count)];
-                speedNode.Data = "HyperSpeed";
-                availableNodes.Remove(speedNode);
-            }
-
-            this.Refresh(); // Refrescar la pantalla para dibujar los ítems y poderes
+            this.Refresh(); 
         }
+    
         private List<Nodo> NodosDisponibles()
         {
             List<Nodo> availableNodes = new List<Nodo>();
@@ -319,7 +375,7 @@ namespace ProyectoTron6
                     Nodo node = linkedList.GetNode(i, j);
                     Rectangle rect = new Rectangle(j * cellSize, panelHeight + i * cellSize, cellSize, cellSize);
 
-                    // Dibuja la estela del jugador en amarillo
+                    // Dibuja la estela del jugador
                     if (jugador.GetTrail().Contains(node))
                     {
                         g.FillRectangle(Brushes.Yellow, rect);
@@ -328,27 +384,26 @@ namespace ProyectoTron6
                     {
                         g.FillRectangle(Brushes.Red, rect);
                     }
-                    // Dibuja los ítems
-                    else if (node.Data == "FuelCell")
+                    // Dibuja los ítems como imágenes
+                    else if (node.Data == "Combustible")
                     {
-                        g.FillRectangle(Brushes.Purple, rect);
+                        g.DrawImage(imgcombustible, rect);
                     }
-                    else if (node.Data == "TrailGrowth")
+                    else if (node.Data == "Incremento")
                     {
-                        g.FillRectangle(Brushes.Green, rect);
+                        g.DrawImage(imgincremento, rect);
                     }
-                    else if (node.Data == "Bomb")
+                    else if (node.Data == "Bomba")
                     {
-                        g.FillRectangle(Brushes.Black, rect);
+                        g.DrawImage(imgbomba, rect);
                     }
-                    // Dibuja los poderes
-                    else if (node.Data == "Shield")
+                    else if (node.Data == "Escudo")
                     {
-                        g.FillRectangle(Brushes.Cyan, rect); // Shield en color cyan
+                        g.DrawImage(imgescudo, rect);
                     }
-                    else if (node.Data == "HyperSpeed")
+                    else if (node.Data == "Acelerar")
                     {
-                        g.FillRectangle(Brushes.Orange, rect); // HyperSpeed en color naranja
+                        g.DrawImage(imgacelerar, rect);
                     }
                     else
                     {
