@@ -8,48 +8,52 @@ namespace ProyectoTron6
 {
     internal class Jugador : Moto
     {
-        private LinkedListNode<Item> currentItem;
-        private ItemQueue itemQueue;
+        private ListaEnlazada<Item> itemLista;  // ListaEnlazada de ítems
+        private NodoLista<Item> currentItem;    // Nodo actual de la lista enlazada
         public bool Destruido { get; private set; }
 
         public Jugador(Nodo initialPosition) : base(initialPosition)
         {
-            PosActual.Data = "Jugador"; //Cambia el dato que almacena el nodo a PlayerBike
-            itemQueue = new ItemQueue();
+            PosActual.Data = "Jugador"; // Cambia el dato que almacena el nodo a PlayerBike
+            itemLista = new ListaEnlazada<Item>();
             Destruido = false;
         }
+
         public void MoverArriba()
         {
-            Mover(PosActual.Up, "arriba"); // Agregar la dirección "arriba"
+            Mover(PosActual.Up, "arriba"); // Agrega la dirección "arriba"
         }
 
         public void MoverAbajo()
         {
-            Mover(PosActual.Down, "abajo"); // Agregar la dirección "abajo"
+            Mover(PosActual.Down, "abajo"); // Agrega la dirección "abajo"
         }
 
         public void MoverIzquierda()
         {
-            Mover(PosActual.Left, "izquierda"); // Agregar la dirección "izquierda"
+            Mover(PosActual.Left, "izquierda"); // Agrega la dirección "izquierda"
         }
 
         public void MoverDerecha()
         {
-            Mover(PosActual.Right, "derecha"); // Agregar la dirección "derecha"
+            Mover(PosActual.Right, "derecha"); // Agrega la dirección "derecha"
         }
+
         public override void Destruir()
         {
             base.Destruir();
-            Destruido = true;  // Marcar como destruido
+            Destruido = true; // Marca como destruido
         }
+
         public async Task ApplyItemsAsync()
         {
             while (true)
             {
-                var item = itemQueue.Dequeue();
-                if (item != null)
+                if (itemLista.Count > 0)
                 {
+                    var item = itemLista.ObtenerPrimero();  // Obtiene el primer ítem de la lista
                     item.Aplicar(this);
+                    itemLista.EliminarPrimero();  // Elimina el primer ítem después de aplicarlo
                     await Task.Delay(1000); // Espera 1 segundo
                 }
             }
@@ -57,47 +61,50 @@ namespace ProyectoTron6
 
         public void AñadirItem(Item item)
         {
-            itemQueue.Enqueue(item);
+            itemLista.AgregarUltimo(item);  // Añade el ítem al final de la lista enlazada
         }
+
         public void UsarItem()
         {
-            if (itemQueue.Contador > 0)
+            if (itemLista.Count > 0)
             {
-                var item = itemQueue.Dequeue();
+                var item = itemLista.ObtenerPrimero();  // Obtiene el primer ítem de la lista
                 item.Aplicar(this);
+                itemLista.EliminarPrimero();  // Elimina el ítem usado
             }
         }
+
         public void CambiarItem(string direction)
         {
-            if (currentItem == null) currentItem = itemQueue.GetItems().First;
+            if (currentItem == null) currentItem = itemLista.Primero;  // Inicializa el ítem actual al primero de la lista
 
-            if (direction == "left" && currentItem.Previous != null)
+            if (direction == "left" && currentItem.Siguiente != null)
             {
-                currentItem = currentItem.Previous;
+                currentItem = currentItem.Siguiente;  // Avanza al siguiente ítem
             }
-            else if (direction == "right" && currentItem.Next != null)
+            else if (direction == "right" && currentItem.Siguiente != null)
             {
-                currentItem = currentItem.Next;
+                currentItem = currentItem.Siguiente;  // Retrocede al ítem anterior
             }
 
-            // Mostrar el ítem seleccionado al jugador
-            VerItems(currentItem.Value);
+            // Muestra el ítem seleccionado al jugador
+            VerItems(currentItem.Data);
         }
 
         private void VerItems(Item item)
         {
             Console.WriteLine("Ítem seleccionado: " + item.GetType().Name);
         }
-
+    
 
         public void MoveLeftItem()
         {
-            // Lógica para moverse al ítem a la izquierda
+            //Lógica para mover al ítem a la izquierda
         }
 
         public void MoveRightItem()
         {
-            // Lógica para moverse al ítem a la derecha
+            //Lógica para mover al ítem a la derecha
         }
     }
 }

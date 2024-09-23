@@ -7,7 +7,7 @@ namespace ProyectoTron6
         private Matriz linkedList;
         private Jugador jugador;
         private List<Enemigos> enemigos;
-        private const int GridSize = 30; // Tamaño de la matriz 30x30
+        private const int GridSize = 30; //Tamaño de la matriz 30x30
         private System.Windows.Forms.Timer MovimientoJugador;
         private Keys lastDirection;
         private List<System.Windows.Forms.Timer> timersEnemigos;
@@ -16,12 +16,18 @@ namespace ProyectoTron6
         private Label lblVelocidadJugador;
         private Label lblCombustibleJugador;
         private Label lblVelocidadEnemigos;
+        private Label lblEstelaJugador;
+        private Label lblPoderJugador;
         //Imagenes de los objetos
         private Image imgcombustible;
         private Image imgincremento;
         private Image imgbomba;
         private Image imgescudo;
         private Image imgacelerar;
+
+        private Panel poderesPanel;
+        private List<PictureBox> poderesPictureBoxes = new List<PictureBox>();
+
 
         private Keys currentDirection = Keys.D;
 
@@ -30,15 +36,13 @@ namespace ProyectoTron6
             InitializeComponent();
 
             // Altura reservada para el área de visualización de datos
-            int panelHeight = 80; // Altura del área superior de datos
-            int matrizSize = 600; // Tamaño fijo de la matriz cuadrada (30x30)
+            int panelHeight = 80; //Altura del área superior de datos
+            int matrizSize = 600; //Tamaño fijo de la matriz cuadrada (30x30)
 
-            // Establecer el tamaño total de la ventana: altura = matriz + panelHeight
+            // Establece el tamaño total de la ventana: altura = matriz + panelHeight
             this.ClientSize = new Size(matrizSize, matrizSize + panelHeight);
             this.MinimumSize = this.ClientSize; // Evitar que la ventana se haga más pequeña que el tamaño necesario
-
-            // Configurar fondo negro para el formulario completo
-            // Configurar fondo negro para el formulario completo
+            //Configura el fondo negro para el formulario completo
             this.BackColor = Color.Black;
 
             //Imagenes cargadas
@@ -48,8 +52,15 @@ namespace ProyectoTron6
             imgescudo = Image.FromFile("Resources/escudo.png");
             imgacelerar = Image.FromFile("Resources/acelerar.png");
 
+            //panel para los poderes
+            poderesPanel = new Panel();
+            poderesPanel.Location = new Point(400, 10); // Posición en la esquina superior derecha
+            poderesPanel.Size = new Size(180, 40); // Tamaño del panel
+            poderesPanel.BackColor = Color.Black;
+            this.Controls.Add(poderesPanel); // Añadir el panel al formulario
 
-            // Crear etiquetas para la información del jugador y enemigos
+
+            //etiquetas para la información del jugador y enemigos
             lblVelocidadJugador = new Label();
             lblVelocidadJugador.Text = "Velocidad Jugador: 0";
             lblVelocidadJugador.ForeColor = Color.White; // Texto en blanco
@@ -64,6 +75,20 @@ namespace ProyectoTron6
             lblCombustibleJugador.Location = new Point(10, 30); // Posición de la etiqueta
             lblCombustibleJugador.AutoSize = true;
 
+            lblPoderJugador = new Label();
+            lblPoderJugador.Text = "Poder: 100";
+            lblPoderJugador.ForeColor = Color.White;
+            lblPoderJugador.BackColor = Color.Black; // Fondo negro para la etiqueta
+            lblPoderJugador.Location = new Point(140, 30); // Posición de la etiqueta
+            lblPoderJugador.AutoSize = true;
+
+            lblEstelaJugador = new Label();
+            lblEstelaJugador.Text = "tamaño estela: pinga";
+            lblEstelaJugador.ForeColor = Color.White;
+            lblEstelaJugador.BackColor = Color.Black; // Fondo negro para la etiqueta
+            lblEstelaJugador.Location = new Point(140, 10); // Posición de la etiqueta
+            lblEstelaJugador.AutoSize = true;
+
             lblVelocidadEnemigos = new Label();
             lblVelocidadEnemigos.Text = "Velocidad Enemigos: ";
             lblVelocidadEnemigos.ForeColor = Color.White;
@@ -71,21 +96,24 @@ namespace ProyectoTron6
             lblVelocidadEnemigos.Location = new Point(10, 50); // Posición de la etiqueta
             lblVelocidadEnemigos.AutoSize = true;
 
-            // Añadir etiquetas al formulario
+            //etiquetas para el formulario
             this.Controls.Add(lblVelocidadJugador);
             this.Controls.Add(lblCombustibleJugador);
             this.Controls.Add(lblVelocidadEnemigos);
+            this.Controls.Add(lblEstelaJugador);
+            this.Controls.Add(lblPoderJugador);
 
-            this.DoubleBuffered = true; // Activar el doble buffering para evitar parpadeos
+
+            this.DoubleBuffered = true; //Activa el doble buffering para evitar parpadeos
 
             linkedList = new Matriz(GridSize, GridSize);
             jugador = new Jugador(linkedList.GetNode(GridSize / 2, GridSize / 2)); // Moto inicia en el centro de la matriz
             enemigos = new List<Enemigos>();
 
-            // Inicializar lista de timers
+            //Inicializa lista de timers
             timersEnemigos = new List<System.Windows.Forms.Timer>();
 
-            // Configurar temporizador para el uso de ítems
+            //Configura temporizador para el uso de ítems
             ItemUsageTimer = new System.Windows.Forms.Timer();
             ItemUsageTimer.Interval = 1000; // 1 segundo
             ItemUsageTimer.Tick += ItemUsageTimer_Tick;
@@ -93,7 +121,7 @@ namespace ProyectoTron6
 
             RespawnItems();
 
-            // Creación de 3 motos enemigas con posiciones únicas
+            //Creación de 3 motos enemigas con posiciones únicas
             for (int i = 0; i < 3; i++)
             {
                 Nodo enemyStartNode;
@@ -105,7 +133,7 @@ namespace ProyectoTron6
                 var enemigo = new Enemigos(enemyStartNode);
                 enemigos.Add(enemigo);
 
-                // Configurar temporizador para cada enemigo con su velocidad
+                //Configura el temporizador para cada enemigo con su respectiva velocidad
                 var timerEnemigo = new System.Windows.Forms.Timer();
                 timerEnemigo.Interval = IntervaloVelocidad(enemigo.velocidad);
                 timerEnemigo.Tick += (sender, e) => Movimientoenemigo_Tick(enemigo);
@@ -115,9 +143,9 @@ namespace ProyectoTron6
             }
 
 
-            // Configurar temporizador para movimiento del jugador
+            //Configura temporizador para movimiento del jugador
             MovimientoJugador = new System.Windows.Forms.Timer();
-            MovimientoJugador.Interval = IntervaloVelocidad(jugador.velocidad); // Inicializar con la velocidad del jugador
+            MovimientoJugador.Interval = IntervaloVelocidad(jugador.velocidad); //Inicializa con la velocidad del jugador
             MovimientoJugador.Tick += MovimientoJugador_Tick;
             MovimientoJugador.Start();
 
@@ -126,48 +154,97 @@ namespace ProyectoTron6
 
             // Actualiza las etiquetas con la información inicial
             ActualizarLabels();
+            ActualizarPoderes();
         }
         private void ItemUsageTimer_Tick(object sender, EventArgs e)
         {
-            var item = jugador.itemQueue.Dequeue();
-            if (item != null)
+            //Procesa solo ítems en la cola de jugador
+            if (jugador.itemQueue.Contador > 0)
             {
-                item.Aplicar(jugador); // Aplicar el ítem a la moto del jugador
-                ActualizarLabels(); // Actualiza las etiquetas tras aplicar el ítem
+                var item = jugador.itemQueue.Peek();  //Verificamos el primer ítem
+
+                //Verificamos si es un ítem y no un poder
+                if (item is Item)
+                {
+                    jugador.itemQueue.Dequeue().Aplicar(jugador);  //Aplica el ítem a la moto del jugador
+                    ActualizarLabels();  //Actualiza las etiquetas de combustible, velocidad, etc.
+                    ActualizarPoderes();
+                }
+            }
+        }
+
+
+        private void ActualizarPoderes()
+        {
+            // Limpia los controles existentes
+            poderesPanel.Controls.Clear();
+
+            // Usa el método Recorrer para iterar sobre los poderes en la pila
+            jugador.poderStack.Recorrer(poder =>
+            {
+                PictureBox poderPictureBox = new PictureBox();
+                poderPictureBox.Size = new Size(40, 40); // Tamaño del PictureBox
+                poderPictureBox.Location = new Point(poderesPanel.Controls.Count * 45, 0); // Posiciona cada imagen
+                poderPictureBox.SizeMode = PictureBoxSizeMode.StretchImage; // Ajuste de la imagen al tamaño del PictureBox
+
+                // Asigna la imagen según el tipo de poder
+                if (poder is Escudo)
+                {
+                    poderPictureBox.Image = imgescudo;
+                }
+                else if (poder is HiperVelocidad)
+                {
+                    poderPictureBox.Image = imgacelerar;
+                }
+
+                // Añade el PictureBox al panel
+                poderesPanel.Controls.Add(poderPictureBox);
+            });
+        }
+        private void UsarPoder()
+        {
+            if (jugador.poderStack.Count > 0)
+            {
+                var poder = jugador.poderStack.Pop();
+                poder.Activar(jugador);
+
+                //Actualiza la visualización de poderes
+                ActualizarPoderes();
             }
         }
         private void Movimientoenemigo_Tick(Enemigos enemigo)
         {
             enemigo.MoveRandom();
             ActualizarLabels();
+            ActualizarPoderes();
             this.Refresh();
         }
         private void EliminarEnemigo(Enemigos enemigo)
         {
-            // Detener el temporizador del enemigo
+            //Detiene el temporizador del enemigo
             var timer = timersEnemigos[enemigos.IndexOf(enemigo)];
             timer.Stop();
 
-            // Eliminar el enemigo de la lista de enemigos y timers
+            //Elimina el enemigo de la lista de enemigos y timers
             enemigos.Remove(enemigo);
             timersEnemigos.Remove(timer);
         }
 
         private int IntervaloVelocidad(int velocidad)
         {
-            // Aquí calculas los milisegundos por nodo según la velocidad
-            // Velocidad 10 es 4 nodos por segundo (1000ms / 4 = 250ms por nodo)
+            //Aquí se calcula los milisegundos por nodo según la velocidad o nodos por segundo.
+            //Velocidad 10 es 4 nodos por segundo (1000ms / 4 = 250ms por nodo)
             return (int)(1000 / (2.2 + (velocidad - 2) * 0.2));
         }
         private void VerColision(Moto moto1, Moto moto2)
         {
             if (moto1.RPosActual() == moto2.RPosActual())
             {
-                // Si dos motos colisionan en la misma posición
+                //Si dos motos colisionan en la misma posición
                 moto1.Destruir();
                 moto2.Destruir();
 
-                // Si uno de los participantes es un enemigo, elimínalo
+                //Si uno de los participantes es un enemigo, elimínalo
                 if (moto1 is Enemigos)
                 {
                     EliminarEnemigo((Enemigos)moto1);
@@ -181,28 +258,27 @@ namespace ProyectoTron6
         }
         private void MovimientoJugador_Tick(object sender, EventArgs e)
         {
-            // Si el jugador está destruido, terminar el juego
+            //Si el jugador está destruido, terminar el juego
             if (jugador.Destruido)
             {
                 GameOvermsg();  // Mostrar mensaje si el jugador está destruido
                 return;
             }
 
-            // Verificar la destrucción de enemigos y eliminarlos
+            //Verifica la destrucción de enemigos y eliminarlos
             foreach (var enemigo in enemigos.ToList()) // Usamos ToList() para evitar problemas al modificar la lista durante la iteración
             {
                 if (enemigo.Destruido)
                 {
-                    EliminarEnemigo(enemigo); // Elimina el enemigo si está destruido
-                    continue; // Pasar al siguiente enemigo
+                    EliminarEnemigo(enemigo); //Elimina el enemigo si está destruido
+                    continue; //Pasa al siguiente enemigo
                 }
 
-                // Movimiento del enemigo
+                //Movimiento del enemigo
                 enemigo.MoveRandom();
             }
 
-            // Movimiento del jugador basado en la última dirección válida
-            // Movimiento del jugador basado en la última dirección válida (currentDirection)
+            //Movimiento del jugador basado en la última dirección válida (currentDirection)
             switch (currentDirection)
             {
                 case Keys.W:
@@ -219,17 +295,18 @@ namespace ProyectoTron6
                     break;
             }
 
-            // Actualizar las etiquetas de información y redibujar
+            //Actualiza las etiquetas de información y redibujar
             ActualizarLabels();
+            ActualizarPoderes();
             this.Refresh();
         }
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            // Solo cambiar la dirección si no es opuesta a la actual
+            //Solo cambiar la dirección si no es opuesta a la actual
             switch (e.KeyCode)
             {
                 case Keys.W:
-                    if (currentDirection != Keys.S)  // No permitir giro de 180 grados
+                    if (currentDirection != Keys.S)  //No permite giro de 180 grados
                         currentDirection = Keys.W;
                     break;
                 case Keys.S:
@@ -244,19 +321,33 @@ namespace ProyectoTron6
                     if (currentDirection != Keys.A)
                         currentDirection = Keys.D;
                     break;
+
+                //Usa el poder manualmente (ejemplo con tecla Q)
+                case Keys.Q:
+                     UsarPoder();
+                    break;
+
+                //Cambiar poder seleccionado (ejemplo con tecla E)
+                case Keys.E:
+                     //aca iria cambiar poder si estuviera implementado xdd
+                    break;
             }
         }
 
         private void ActualizarLabels()
         {
-            // Actualizar la etiqueta de velocidad del jugador
+            //Actualiza la etiqueta de velocidad del jugador
             lblVelocidadJugador.Text = $"Velocidad Jugador: {jugador.velocidad}";
 
-            // Actualizar la etiqueta de combustible del jugador
+            // Actualiza la etiqueta de combustible del jugador
             lblCombustibleJugador.Text = $"Combustible: {jugador.combustible}";
 
-            // Actualizar la etiqueta de velocidad de los enemigos (intervalo)
-            var velocidadesEnemigos = string.Join(", ", enemigos.Select(e => e.velocidad));
+            lblEstelaJugador.Text = $"Tamaño de la estela: {jugador.tamañoestela}";
+
+            lblPoderJugador.Text = $"Poderes: {jugador.poderStack.Count}";
+
+           //Actualiza la etiqueta de velocidad de los enemigos (intervalo)
+           var velocidadesEnemigos = string.Join(", ", enemigos.Select(e => e.velocidad));
             lblVelocidadEnemigos.Text = $"Velocidad Enemigos: {velocidadesEnemigos}";
         }
         public void GameOvermsg()
@@ -267,21 +358,21 @@ namespace ProyectoTron6
                 Brush brush = Brushes.Red;
                 string message = "GAME OVER";
 
-                // Obtener el tamaño del texto
+                //tamaño del texto
                 SizeF textSize = g.MeasureString(message, font);
 
-                // Calcular la posición para centrar el texto
+                //posición para centrar el texto
                 float x = (ClientSize.Width - textSize.Width) / 2;
                 float y = (ClientSize.Height - textSize.Height) / 2;
 
-                // Dibujar el mensaje en rojo
+                //Dibujar el mensaje en rojo
                 g.DrawString(message, font, brush, x, y);
             }
 
-            // Pausar el hilo actual durante 2 segundos (2000 ms)
+            //Pausa el hilo actual durante 2 segundos (2000 ms)
             System.Threading.Thread.Sleep(2000);
 
-            // Cerrar la aplicación después de 2 segundos
+            //Cerrar la aplicación después de 2 segundos
             Application.Exit();
         }
         private void RespawnItems()
@@ -338,7 +429,7 @@ namespace ProyectoTron6
                 {
                     Nodo node = linkedList.GetNode(i, j);
 
-                    // Verifica si el nodo está ocupado por el jugador o enemigos
+                    //Verifica si el nodo está ocupado por el jugador o enemigos
                     bool isOccupied = jugador.RPosActual() == node || jugador.GetTrail().Contains(node);
 
                     foreach (var enemigo in enemigos)
@@ -352,7 +443,7 @@ namespace ProyectoTron6
 
                     if (!isOccupied)
                     {
-                        availableNodes.Add(node); // Añadir nodos vacíos a la lista
+                        availableNodes.Add(node); //Añade los nodos vacíos a la lista
                     }
                 }
             }
@@ -375,7 +466,7 @@ namespace ProyectoTron6
                     Nodo node = linkedList.GetNode(i, j);
                     Rectangle rect = new Rectangle(j * cellSize, panelHeight + i * cellSize, cellSize, cellSize);
 
-                    // Dibuja la estela del jugador
+                    //Dibuja la estela del jugador
                     if (jugador.GetTrail().Contains(node))
                     {
                         g.FillRectangle(Brushes.Yellow, rect);
@@ -384,7 +475,7 @@ namespace ProyectoTron6
                     {
                         g.FillRectangle(Brushes.Red, rect);
                     }
-                    // Dibuja los ítems como imágenes
+                    //Dibuja los ítems como imágenes
                     else if (node.Data == "Combustible")
                     {
                         g.DrawImage(imgcombustible, rect);
@@ -407,7 +498,7 @@ namespace ProyectoTron6
                     }
                     else
                     {
-                        // Lógica para dibujar enemigos o nodos vacíos
+                        //Lógica para dibujar enemigos o nodos vacíos
                         bool isEnemyTrail = false;
                         foreach (var enemigo in enemigos)
                         {
@@ -431,7 +522,7 @@ namespace ProyectoTron6
                         }
                     }
 
-                    // Dibujar bordes de las celdas
+                    //Dibuja los bordes de las celdas
                     g.DrawRectangle(Pens.Gray, rect);
                 }
             }

@@ -11,20 +11,28 @@ namespace ProyectoTron6
         public Nodo PosActual; 
         public int velocidad;
         public int combustible;
-        public LinkedList<Nodo> estela;
+        public ListaEnlazada<Nodo> estela;
         public int tamañoestela;
         public double Tiempointervalo;
-        public ItemQueue itemQueue = new ItemQueue();
+        public ItemQueue itemQueue2 = new ItemQueue();
         private bool invulnerabilidad = false;
         protected string DirActual; //Para el movimiento continuado del jugador
         private string direccionActual = "derecha";
+        private int nodosRecorridos = 0;
+
+        // Cola para items que se activan automáticamente
+        public ColaPrioridad<Item> itemQueue = new ColaPrioridad<Item>();
+
+        // Pila para poderes activados manualmente
+        public Pila<Poder> poderStack = new Pila<Poder>();
+
 
 
         public Moto(Nodo PosInicial)
         {
             PosActual = PosInicial; //Inicializa la posición actual de la moto.
             PosActual.Data = "Bike"; //El nodo actual almacena la moto.
-            estela = new LinkedList<Nodo>(); //Inicializa la lista enlazada para la estela.
+            estela = new ListaEnlazada<Nodo>(); //Inicializa la lista enlazada para la estela.
             tamañoestela = 3;
             combustible = 100;
             velocidad = new Random().Next(1, 11); //la velocidad es aleatoria entre 1 y 10 al abrir el juego.
@@ -35,11 +43,11 @@ namespace ProyectoTron6
         //Metodo para manejar la velocidad de la moto
         private double ConversionVelocidad(int velocidad)
         {
-            velocidad = Math.Clamp(velocidad, 1, 10);// Limita la velocidad a un rango entre 1 y 10.
+            velocidad = Math.Clamp(velocidad, 1, 10);//Limita la velocidad a un rango entre 1 y 10.
             return 250 + (10 - velocidad) * 25;//Intervalo base: velocidad máxima (10) = 250 ms por nodo// Cuanto menor sea la velocidad, mayor será el intervalo (más lento).
         }
 
-        //Método que devuelve la posición actual de la moto
+        //Metodo que devuelve la posición actual de la moto
         public Nodo RPosActual()
         {
             return PosActual;
@@ -48,7 +56,7 @@ namespace ProyectoTron6
         {
             return DirActual;
         }
-        //Método para establecer la dirección
+        //Metodo para establecer la dirección
         public void EstablecerDireccion(string Direccion)
         {
             if ((DirActual == "arriba" && Direccion == "abajo") ||
@@ -56,19 +64,19 @@ namespace ProyectoTron6
                 (DirActual == "izquierda" && Direccion == "derecha") ||
                 (DirActual == "derecha" && Direccion == "izquierda"))
             {
-                return; // No permitir giros de 180 grados
+                return; //No permite giros de 180 grados
             }
             DirActual = Direccion;
         }
 
 
         //Devuelve la estela de la moto
-        public LinkedList<Nodo> GetTrail()
+        public ListaEnlazada<Nodo>  GetTrail()
         {
             return estela;
         }
 
-        //Método que se mueve en la dirección actual
+        //Metodo que se mueve en la direccion actual
         public void MoverDireccionActual()
         {
             switch (DirActual)
@@ -87,20 +95,24 @@ namespace ProyectoTron6
                     break;
             }
         }
+        //Método para verificar si hay colisión en la nueva posición
         protected bool Colision(Nodo posNueva)
         {
             return Colisioncontramoto(posNueva) || ColisionContraEstela(posNueva);
         }
 
+        //Método para verificar si hay colisión con otra moto
         protected bool Colisioncontramoto(Nodo posNueva)
         {
             return posNueva.Data == "EnemyBike" || posNueva.Data == "Jugador";
         }
 
+        //Método para verificar si hay colisión con la estela
         protected bool ColisionContraEstela(Nodo posNueva)
         {
             return posNueva.Data == "Trail";
         }
+        //Método para manejar la colisión
         protected void ManejoColision(Nodo posNueva)
         {
             if (Colisioncontramoto(posNueva))
@@ -119,57 +131,92 @@ namespace ProyectoTron6
         {
             if (posNueva != null)
             {
-                // Evitamos giros bruscos hacia la dirección opuesta.
+                // Evitar giros bruscos hacia la dirección opuesta.
                 if ((direccionActual == "arriba" && direccionNueva == "abajo") ||
                     (direccionActual == "abajo" && direccionNueva == "arriba") ||
                     (direccionActual == "izquierda" && direccionNueva == "derecha") ||
                     (direccionActual == "derecha" && direccionNueva == "izquierda"))
                 {
-                    return; // No permitimos cambiar bruscamente hacia la dirección opuesta.
+                    return; //No permite cambiar bruscamente hacia la dirección opuesta.
                 }
 
-                // Verificar colisiones
+                //Verifica colisiones
                 if (Colision(posNueva))
                 {
                     ManejoColision(posNueva);
                     return;
                 }
 
-                //Si no hay colisión, continuar moviendo la moto
-                estela.AddFirst(PosActual); // Agrega la posicion actual al inicio de la estela
-                if (estela.Count > tamañoestela)
+                //Verifica si el nodo contiene un objeto de tipo Item o Poder basado en el string
+                switch (posNueva.Data)
                 {
-                    Nodo lastNode = estela.Last.Value; //Obtiene el último nodo de la estela
-                    lastNode.Data = ""; //Limpia el dato del último nodo de la estela
-                    estela.RemoveLast(); //Elimina el último nodo de la estela
+                    case "Combustible":
+                        var combustible = new Combustible();  
+                        itemQueue.Enqueue(combustible);      
+                        break;
+
+                    case "Incremento":
+                        var incrementar = new Incrementar();  
+                        itemQueue.Enqueue(incrementar);       
+                        break;
+
+                    case "Bomba":
+                        var bomba = new Bomba();  
+                        itemQueue.Enqueue(bomba); 
+                        break;
+
+                    case "Escudo":
+                        var escudo = new Escudo();  
+                        poderStack.Push(escudo);   
+                        break;
+
+                    case "Acelerar":
+                        var hiperVelocidad = new HiperVelocidad();  
+                        poderStack.Push(hiperVelocidad);           
+                        break;
+
+                    default:
+                        //No hace nada si no es un item o poder conocido
+                        break;
                 }
 
-                PosActual.Data = "Trail"; // Marcar la posición anterior como estela
-                PosActual = posNueva; // Mover a la nueva posición
-                PosActual.Data = DatadeMoto(); // Marcar la nueva posición como la moto
+                //Continua el movimiento si no hay colisión
+                estela.AgregarPrimero(PosActual); // Agregar la posición actual al inicio de la estela
+                //Si la estela supera el tamaño, eliminar el último nodo
+                if (estela.Count > tamañoestela)
+                {
+                    Nodo ultimoNodo = estela.ObtenerUltimo(); // Usar el método para obtener el último nodo
+                    if (ultimoNodo != null)
+                    {
+                        ultimoNodo.Data = ""; //Limpia el dato del último nodo
+                    }
+                    estela.EliminarUltimo(); //Elimina el último nodo
+                }
 
-                // Consumir combustible
-                combustible -= velocidad / 5;
+                PosActual.Data = "Trail"; //Marca la posición anterior como estela
+                PosActual = posNueva; //Mueve a la nueva posición
+                PosActual.Data = DatadeMoto(); //Marca la nueva posición como la moto
+                                               //Incrementa el contador de nodos recorridos
+                nodosRecorridos++;
+
+                //Cada 5 nodos, reducir 10 de combustible
+                if (nodosRecorridos >= 5)
+                {
+                    combustible -= 10;
+                    nodosRecorridos = 0; //Reinicia el contador
+                }
 
                 if (combustible <= 0)
                 {
-                    this.Destruir();  //Combustible agotado,se destruye.
+                    this.Destruir();  //Combustible agotado, se destruye.
                 }
 
-                // Actualizamos la dirección actual si el movimiento fue exitoso.
+                //Actualiza la dirección actual si el movimiento fue exitoso.
                 direccionActual = direccionNueva;
             }
         }
 
-        public async Task AplicarItem()
-        {
-            while (itemQueue.GetItems().Count > 0)
-            {
-                var item = itemQueue.Dequeue();
-                item.Aplicar(this);  // Aplica el ítem a la moto
-                await Task.Delay(1000); // Delay de 1 segundo entre ítems
-            }
-        }
+
 
         public void HacerInvulnerable(int seconds)
         {
@@ -179,14 +226,14 @@ namespace ProyectoTron6
 
         public virtual void Destruir()
         {
-            // Lógica para destruir la moto del jugador
+            //logica para destruir la moto del jugador
             Console.WriteLine("La moto ha sido destruida.");
-            PosActual.Data = "";  // Liberar la posición actual
-            estela.Clear();             // Vaciar la estela
+            PosActual.Data = "";  //Libera la posición actual
+            estela.Limpiar(); //Vacia la estela
 
         }
 
-        // Método para verificar si la moto es invulnerable
+        //Método para verificar si la moto es invulnerable
         public bool Invulnerable()
         {
             return invulnerabilidad;

@@ -18,13 +18,17 @@ namespace ProyectoTron6
 
         public void SoltarItems(Matriz grid)
         {
-            foreach (var item in itemQueue.GetItems())
+            // Usa el método Recorrer para iterar sobre cada ítem en la lista
+            itemQueue.GetItems().Recorrer(item =>
             {
-                Nodo freeNode = BuscarNodoLibre(grid); //Encuentra una celda libre
-                freeNode.Data = item.GetType().Name; //Coloca el ítem en esa celda como una representación del tipo
-            }
-            itemQueue = new ItemQueue(); //Vaciar la cola después de soltar los ítems
+                Nodo freeNode = BuscarNodoLibre(grid); // Encuentra una celda libre
+                freeNode.Data = item.GetType().Name; // Coloca el ítem en esa celda como una representación del tipo
+            });
+
+            // Vaciar la cola después de soltar los ítems
+            itemQueue = new ItemQueue();
         }
+
 
 
         //Encuentra una celda libre en la cuadrícula
@@ -34,10 +38,10 @@ namespace ProyectoTron6
             Nodo freeNode;
             do
             {
-                int x = rand.Next(0, grid.Matrix.GetLength(0)); // Filas
-                int y = rand.Next(0, grid.Matrix.GetLength(1)); // Columnas
+                int x = rand.Next(0, grid.Matrix.GetLength(0)); //Filas
+                int y = rand.Next(0, grid.Matrix.GetLength(1)); //Columnas
                 freeNode = grid.GetNode(x, y);
-            } while (!string.IsNullOrEmpty(freeNode.Data)); // Repetir si la celda no está libre
+            } while (!string.IsNullOrEmpty(freeNode.Data)); //Repetir si la celda no está libre
             return freeNode;
         }
 
@@ -45,17 +49,17 @@ namespace ProyectoTron6
         {
             Console.WriteLine("La moto ha sido destruida.");
 
-            // Limpiar la estela
-            foreach (var node in estela)
+            // Limpia la estela utilizando el método personalizado de ListaEnlazada
+            estela.Recorrer(nodo =>
             {
-                node.Data = "";  // Limpia los nodos de la estela
-            }
-            estela.Clear();
+                nodo.Data = "";  //Limpia los nodos de la estela
+            });
+            estela.Limpiar();
 
-            // Marcar la posición actual de la moto como vacía
+            // Marca la posición actual de la moto como vacía
             PosActual.Data = "";
 
-            // Marcar la moto como destruida
+            //Marca la moto como destruida
             Destruido = true;
         }
 
@@ -64,13 +68,13 @@ namespace ProyectoTron6
             Random random = new Random();
             List<int> possibleDirections = new List<int> { 0, 1, 2, 3 }; // 0 = Up, 1 = Down, 2 = Left, 3 = Right
 
-            // Eliminar direcciones que llevarían a su propia estela
+            // Elimina direcciones que llevarían a su propia estela
             if (PosActual.Up != null && PerteneceAEstela(PosActual.Up)) possibleDirections.Remove(0);   // Arriba
             if (PosActual.Down != null && PerteneceAEstela(PosActual.Down)) possibleDirections.Remove(1); // Abajo
             if (PosActual.Left != null && PerteneceAEstela(PosActual.Left)) possibleDirections.Remove(2); // Izquierda
             if (PosActual.Right != null && PerteneceAEstela(PosActual.Right)) possibleDirections.Remove(3); // Derecha
 
-            // Si no hay direcciones posibles, no moverse
+            //Si no hay direcciones posibles, no moverse
             if (possibleDirections.Count == 0) return;
 
             int direction = possibleDirections[random.Next(possibleDirections.Count)];
